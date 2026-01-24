@@ -14,7 +14,10 @@
     "default_title": "Open Workspaces"
   },
   "background": {
-    "scripts": ["background/background.js"]
+    "scripts": [
+      "background/storage.js",
+      "background/background.js"
+    ]
   },
   "browser_specific_settings": {
     "gecko": {
