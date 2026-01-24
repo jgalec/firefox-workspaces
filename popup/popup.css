@@ -316,7 +316,25 @@ main {
     font-weight: 600;
 }
 
-/* Actions Group */
+/* Drag & Drop Visuals */
+.workspace-item[draggable="true"] {
+    cursor: grab;
+}
+
+.workspace-item.dragging {
+    opacity: 0.5;
+    background-color: var(--hover-light);
+}
+
+.workspace-item.drag-over-top {
+    border-top: 2px solid var(--primary-blue);
+}
+
+.workspace-item.drag-over-bottom {
+    border-bottom: 2px solid var(--primary-blue);
+}
+
+/* Header Buttons */
 .item-actions {
     display: flex;
     align-items: center;

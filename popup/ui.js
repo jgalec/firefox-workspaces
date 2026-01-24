@@ -39,14 +39,14 @@ const PopupUI = {
     /**
      * Renders the workspace list
      */
-    renderList(workspaces, activeWindowId, openWindowIds, onSwitch, onDelete, onEdit) {
+    renderList(workspaces, activeWindowId, openWindowIds, onSwitch, onDelete, onEdit, onReorder) {
         this.ui.workspaceList.innerHTML = '';
         
         // Header Default
         this.ui.currentWorkspaceName.textContent = 'This Window';
         this.ui.currentWorkspaceName.classList.add('unmanaged');
 
-        workspaces.forEach(workspace => {
+        workspaces.forEach((workspace, index) => {
             const clone = this.ui.template.content.cloneNode(true);
             const li = clone.querySelector('.workspace-item');
             const colorDiv = clone.querySelector('.workspace-color');
@@ -68,6 +68,48 @@ const PopupUI = {
 
             li.addEventListener('click', () => onSwitch(workspace.id));
             
+            // --- Drag & Drop ---
+            li.setAttribute('draggable', 'true');
+            
+            li.addEventListener('dragstart', (e) => {
+                li.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', index);
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            li.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const rect = li.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+                li.classList.remove('drag-over-top', 'drag-over-bottom');
+                if (e.clientY < midY) li.classList.add('drag-over-top');
+                else li.classList.add('drag-over-bottom');
+            });
+
+            li.addEventListener('dragleave', () => {
+                li.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+
+            li.addEventListener('drop', (e) => {
+                e.preventDefault();
+                li.classList.remove('drag-over-top', 'drag-over-bottom');
+                const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                const rect = li.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+                const dropAfter = e.clientY >= midY;
+                
+                if (fromIndex !== index) {
+                    onReorder(fromIndex, index, dropAfter);
+                }
+            });
+
+            li.addEventListener('dragend', () => {
+                li.classList.remove('dragging');
+                this.ui.workspaceList.querySelectorAll('.workspace-item').forEach(el => 
+                    el.classList.remove('drag-over-top', 'drag-over-bottom'));
+            });
+            // -------------------
+
             clone.querySelector('.delete-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 onDelete(workspace.id, workspace.name);

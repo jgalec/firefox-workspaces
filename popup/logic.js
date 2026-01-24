@@ -23,7 +23,8 @@ const PopupLogic = {
             openWindowIds,
             (id) => this.switchWorkspace(id),
             (id, name) => this.promptDelete(id, name),
-            (ws) => this.startEdit(ws)
+            (ws) => this.startEdit(ws),
+            (from, to, after) => this.handleReorder(from, to, after)
         );
     },
 
@@ -86,5 +87,25 @@ const PopupLogic = {
         this.saveFromCurrentWindow = (mode === 'save-window');
         this.selectedColor = this.availableColors[0];
         PopupUI.toggleView(true, mode, null, this.selectedColor, this.availableColors);
+    },
+
+    async handleReorder(fromIndex, toIndex, dropAfter) {
+        try {
+            const data = await browser.storage.local.get('workspaces');
+            const workspaces = data.workspaces || [];
+            
+            const [movedItem] = workspaces.splice(fromIndex, 1);
+            
+            let finalIndex = toIndex;
+            if (fromIndex < toIndex) finalIndex--; 
+            if (dropAfter) finalIndex++;
+            
+            workspaces.splice(finalIndex, 0, movedItem);
+            
+            await browser.storage.local.set({ workspaces });
+            // Notify background to update context menu order
+            browser.runtime.sendMessage({ type: 'UPDATE_WORKSPACE', workspaceId: 'reorder', payload: {} });
+            this.refreshData();
+        } catch (error) { console.error('PopupLogic: Error reordering', error); }
     }
 };
