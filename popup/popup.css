@@ -1,4 +1,22 @@
-/* Basic reset */
+/* Firefox Workspaces - Popup Styles */
+
+:root {
+    --primary-blue: #0060df;
+    --primary-blue-hover: #003eaa;
+    --bg-light: #ffffff;
+    --bg-dark: #1c1b22;
+    --text-light: #15141a;
+    --text-dark: #fbfbfe;
+    --secondary-text-light: #5b5b66;
+    --secondary-text-dark: #cfcfd8;
+    --border-light: #cfcfd8;
+    --border-dark: #5b5b66;
+    --hover-light: #f0f0f4;
+    --hover-dark: #2b2a33;
+    --input-border: #8f8f9d;
+    --focus-ring: rgba(0, 96, 223, 0.4);
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -6,63 +24,268 @@
 }
 
 body {
-    /* System fonts for native integration */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    font-size: 16px;
-    background-color: #ffffff; /* Light mode default */
-    color: #15141a;
-    width: 320px; /* Fixed width for the popup */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    background-color: var(--bg-light);
+    color: var(--text-light);
+    width: 320px;
+    min-height: 300px; /* Force minimum height */
+    user-select: none;
+    overflow-x: hidden;
 }
 
-/* Automatic Dark Mode */
 @media (prefers-color-scheme: dark) {
     body {
-        background-color: #1c1b22; /* Firefox Dark BG */
-        color: #fbfbfe;
+        background-color: var(--bg-dark);
+        color: var(--text-dark);
     }
 }
 
 .container {
+    display: flex;
+    flex-direction: column;
+    min-height: 300px; /* Match body min-height */
+    max-height: 500px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Header */
+.popup-header {
     padding: 16px;
-}
-
-header h1 {
-    font-size: 20px; /* Heading MD/LG */
-    font-weight: 600;
-    margin-bottom: 16px;
-}
-
-p {
-    margin-bottom: 16px;
-    color: #5b5b66; /* Secondary text light */
+    border-bottom: 1px solid var(--border-light);
 }
 
 @media (prefers-color-scheme: dark) {
-    p {
-        color: #cfcfd8; /* Secondary text dark */
+    .popup-header {
+        border-bottom-color: var(--border-dark);
     }
 }
 
-/* Firefox style Primary Button */
-.btn-primary {
-    display: inline-block;
-    width: 100%;
-    padding: 8px 16px;
-    background-color: #0060df; /* Primary Blue */
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
+.popup-header h1 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Active Info */
+.active-info {
+    padding: 12px 16px;
+    background-color: var(--hover-light);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+}
+
+@media (prefers-color-scheme: dark) {
+    .active-info {
+        background-color: var(--hover-dark);
+    }
+}
+
+.active-info .label {
+    color: var(--secondary-text-light);
+    margin-right: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .active-info .label {
+        color: var(--secondary-text-dark);
+    }
+}
+
+.active-info .name {
+    font-weight: 600;
+}
+
+/* Workspace List */
+.workspace-list {
+    list-style: none;
+    padding: 8px 0;
+    overflow-y: auto;
+    flex-grow: 1; 
+}
+
+.workspace-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
     cursor: pointer;
-    text-align: center;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s;
+}
+
+.workspace-item:hover {
+    background-color: var(--hover-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .workspace-item:hover {
+        background-color: var(--hover-dark);
+    }
+}
+
+.workspace-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.workspace-name {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.active-indicator {
+    color: var(--primary-blue);
+    font-size: 14px;
+    visibility: hidden;
+}
+
+.workspace-item.active .active-indicator {
+    visibility: visible;
+}
+
+.workspace-item.active .workspace-name {
+    font-weight: 600;
+}
+
+/* Create Form */
+.create-form {
+    padding: 16px;
+    flex-grow: 1;
+}
+
+.create-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--secondary-text-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .create-form label {
+        color: var(--secondary-text-dark);
+    }
+}
+
+.create-form input[type="text"] {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    background-color: transparent;
+    color: inherit;
+    font-size: 14px;
+}
+
+.create-form input[type="text"]:focus {
+    border-color: var(--primary-blue);
+    outline: 3px solid var(--focus-ring);
+}
+
+/* Color Picker */
+.color-picker {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.color-option {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.1s;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: var(--text-light);
+    outline: 2px solid var(--primary-blue);
+    outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .color-option.selected {
+        border-color: var(--text-dark);
+    }
+}
+
+/* Footer & Buttons */
+.popup-footer {
+    padding: 16px;
+    border-top: 1px solid var(--border-light);
+    background-color: var(--bg-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .popup-footer {
+        border-top-color: var(--border-dark);
+        background-color: var(--bg-dark);
+    }
+}
+
+.popup-footer.actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+.btn-primary {
+    background-color: var(--primary-blue);
+    color: white;
 }
 
 .btn-primary:hover {
-    background-color: #003eaa;
+    background-color: var(--primary-blue-hover);
 }
 
-.btn-primary:active {
-    background-color: #002b75;
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text-light);
+    border: 1px solid var(--border-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .btn-secondary {
+        color: var(--text-dark);
+        border-color: var(--border-dark);
+    }
+    .btn-secondary:hover {
+        background-color: var(--hover-dark);
+    }
+}
+
+.btn-secondary:hover {
+    background-color: var(--hover-light);
+}
+
+.icon {
+    font-size: 18px;
+    line-height: 1;
+    margin-right: 6px;
 }
