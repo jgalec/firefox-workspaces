@@ -222,28 +222,45 @@ main {
     font-weight: 600;
 }
 
-/* Delete Button */
-.delete-btn {
+/* Actions Group */
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.workspace-item:hover .item-actions {
+    opacity: 1;
+}
+
+/* Action Buttons Base */
+.edit-btn, .delete-btn {
     background: none;
     border: none;
     color: var(--secondary-text-light);
-    font-size: 18px;
+    font-size: 16px; /* Slightly smaller for icon consistency */
     cursor: pointer;
-    padding: 0 4px;
-    margin-left: 8px;
-    opacity: 0;
-    transition: opacity 0.2s, color 0.2s;
-    border-radius: 2px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s, background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
 }
 
 @media (prefers-color-scheme: dark) {
-    .delete-btn {
+    .edit-btn, .delete-btn {
         color: var(--secondary-text-dark);
     }
 }
 
-.workspace-item:hover .delete-btn {
-    opacity: 1;
+.edit-btn:hover {
+    background-color: rgba(0, 96, 223, 0.1);
+    color: var(--primary-blue);
 }
 
 .delete-btn:hover {
@@ -251,14 +268,16 @@ main {
     color: #d70022;
 }
 
-.delete-btn.confirm-state {
-    opacity: 1 !important;
-    width: auto;
-    font-size: 12px;
-    background-color: #d70022;
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
+@media (prefers-color-scheme: dark) {
+    .edit-btn:hover {
+        background-color: rgba(0, 96, 223, 0.2);
+        color: #00ddff; /* Brighter blue for dark mode visibility */
+    }
+}
+
+/* Override old delete-btn specific hover show since we use group opacity now */
+.workspace-item:hover .delete-btn {
+    opacity: 1; /* Keep consistent */
 }
 
 /* Create Form */

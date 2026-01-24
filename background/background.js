@@ -29,7 +29,13 @@ browser.runtime.onMessage.addListener(async (message) => {
             try { await browser.windows.remove(ws.windowId); } catch (e) {}
         }
         await StorageService.deleteWorkspace(message.workspaceId);
-        await MenusManager.updateSubmenus(); // Refresh context menu
+        await MenusManager.updateSubmenus(); 
+        return { success: true };
+    }
+    if (message.type === 'UPDATE_WORKSPACE') {
+        console.log(`Background: Updating workspace ${message.workspaceId}`);
+        await WorkspaceManager.updateWorkspace(message.workspaceId, message.payload);
+        await MenusManager.updateSubmenus();
         return { success: true };
     }
 });

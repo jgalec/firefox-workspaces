@@ -25,10 +25,10 @@
         </main>
     </div>
 
-    <!-- Create Workspace View (Hidden by default) -->
+    <!-- Create/Edit Workspace View (Hidden by default) -->
     <div class="container hidden" id="create-view">
         <header class="popup-header">
-            <h1>New Workspace</h1>
+            <h1 id="create-view-title">New Workspace</h1>
         </header>
         <main class="create-form">
             <label for="new-ws-name">Name</label>
@@ -63,7 +63,10 @@
             <div class="workspace-color"></div>
             <span class="workspace-name"></span>
             <span class="status-indicator"></span>
-            <button class="delete-btn" title="Delete Workspace">×</button>
+            <div class="item-actions">
+                <button class="edit-btn" title="Edit Workspace">✎</button>
+                <button class="delete-btn" title="Delete Workspace">×</button>
+            </div>
         </li>
     </template>
 

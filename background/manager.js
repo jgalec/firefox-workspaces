@@ -207,5 +207,18 @@ const WorkspaceManager = {
             StateManager.unlinkWindow(windowId);
             console.log(`Manager: Window ${windowId} closed. Workspace ${workspaceId} marked inactive.`);
         }
+    },
+
+    /**
+     * Updates workspace metadata (name, color).
+     */
+    async updateWorkspace(id, data) {
+        const workspaces = await StorageService.getWorkspaces();
+        const ws = workspaces.find(w => w.id === id);
+        if (ws) {
+            if (data.name) ws.name = data.name;
+            if (data.color) ws.color = data.color;
+            await StorageService.saveWorkspace(ws);
+        }
     }
 };

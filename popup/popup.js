@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // UI References
     const mainView = document.getElementById('main-view');
     const createView = document.getElementById('create-view');
+    const createViewTitle = document.getElementById('create-view-title'); // Header title
     const workspaceList = document.getElementById('workspace-list');
     const currentWorkspaceName = document.getElementById('current-workspace-name');
     const template = document.getElementById('workspace-item-template');
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // State
     let selectedColor = '#0060df'; 
     let workspaceToDeleteId = null;
+    let editingWorkspaceId = null; // Track editing state
     const availableColors = ['#0060df', '#008740', '#d70022', '#f5a623', '#9059ff', '#0590b0', '#ff4aa2', '#ffb300'];
 
     /**
@@ -45,7 +47,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             workspaceList.innerHTML = '';
             
-            // Reset header text default
             currentWorkspaceName.textContent = 'This Window';
             currentWorkspaceName.classList.add('unmanaged');
 
@@ -59,11 +60,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nameSpan.textContent = workspace.name;
                 colorDiv.style.backgroundColor = workspace.color || '#cccccc';
 
-                // Status Logic
                 if (workspace.windowId === currentWin.id) {
                     li.classList.add('active');
                     statusSpan.textContent = 'Active';
-                    // Update Header
                     currentWorkspaceName.textContent = workspace.name;
                     currentWorkspaceName.classList.remove('unmanaged');
                 } else if (workspace.windowId && openWindowIds.has(workspace.windowId)) {
@@ -73,16 +72,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 li.addEventListener('click', () => switchWorkspace(workspace.id));
                 
-                // Delete Logic
+                // Actions
                 const deleteBtn = clone.querySelector('.delete-btn');
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (deleteBtn.classList.contains('confirm-state')) {
                         deleteWorkspace(workspace.id);
                     } else {
-                        // Use modal instead of inline confirm for better UX
                         promptDelete(workspace.id, workspace.name);
                     }
+                });
+
+                const editBtn = clone.querySelector('.edit-btn');
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleView(true, 'edit', workspace);
                 });
                 
                 workspaceList.appendChild(clone);
@@ -120,45 +124,76 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function createWorkspace() {
+    async function handleSave() {
         const name = nameInput.value.trim();
         if (!name) return;
 
-        const newWorkspace = {
-            id: 'ws-' + Date.now(),
-            name: name,
-            color: selectedColor,
-            tabs: [],
-            groups: [],
-            windowId: null,
-            lastActive: Date.now()
-        };
+        if (editingWorkspaceId) {
+            // UPDATE Mode
+            try {
+                await browser.runtime.sendMessage({ 
+                    type: 'UPDATE_WORKSPACE', 
+                    workspaceId: editingWorkspaceId,
+                    payload: { name, color: selectedColor } 
+                });
+                toggleView(false);
+                renderWorkspaces();
+            } catch (error) {
+                console.error('Popup: Error updating workspace', error);
+            }
+        } else {
+            // CREATE Mode
+            const newWorkspace = {
+                id: 'ws-' + Date.now(),
+                name: name,
+                color: selectedColor,
+                tabs: [],
+                groups: [],
+                windowId: null,
+                lastActive: Date.now()
+            };
 
-        try {
-            await browser.runtime.sendMessage({ 
-                type: 'CREATE_WORKSPACE', 
-                payload: newWorkspace 
-            });
-            toggleView(false);
-            renderWorkspaces();
-        } catch (error) {
-            console.error('Popup: Error creating workspace', error);
+            try {
+                await browser.runtime.sendMessage({ 
+                    type: 'CREATE_WORKSPACE', 
+                    payload: newWorkspace 
+                });
+                toggleView(false);
+                renderWorkspaces();
+            } catch (error) {
+                console.error('Popup: Error creating workspace', error);
+            }
         }
     }
 
     /**
      * UI Helpers
      */
-    function toggleView(showCreate) {
-        if (showCreate) {
+    function toggleView(show, mode = 'create', data = null) {
+        if (show) {
             mainView.classList.add('hidden');
             createView.classList.remove('hidden');
-            nameInput.value = '';
+            
+            if (mode === 'edit' && data) {
+                createViewTitle.textContent = 'Edit Workspace';
+                confirmCreateBtn.textContent = 'Save Changes';
+                editingWorkspaceId = data.id;
+                nameInput.value = data.name;
+                selectedColor = data.color || '#0060df';
+            } else {
+                createViewTitle.textContent = 'New Workspace';
+                confirmCreateBtn.textContent = 'Create';
+                editingWorkspaceId = null;
+                nameInput.value = '';
+                selectedColor = availableColors[0];
+            }
+            
+            renderColorPicker(); // Re-render to show selected color
             nameInput.focus();
-            renderColorPicker();
         } else {
             createView.classList.add('hidden');
             mainView.classList.remove('hidden');
+            editingWorkspaceId = null;
         }
     }
 
@@ -170,12 +205,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderColorPicker() {
         colorPickerContainer.innerHTML = '';
-        selectedColor = availableColors[0];
-        availableColors.forEach((color, index) => {
+        availableColors.forEach((color) => {
             const div = document.createElement('div');
             div.className = 'color-option';
             div.style.backgroundColor = color;
-            if (index === 0) div.classList.add('selected');
+            if (color === selectedColor) div.classList.add('selected');
             div.addEventListener('click', () => {
                 document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
                 div.classList.add('selected');
@@ -186,9 +220,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Event Listeners
-    showCreateUiBtn.addEventListener('click', () => toggleView(true));
+    showCreateUiBtn.addEventListener('click', () => toggleView(true, 'create'));
     cancelCreateBtn.addEventListener('click', () => toggleView(false));
-    confirmCreateBtn.addEventListener('click', createWorkspace);
+    confirmCreateBtn.addEventListener('click', handleSave);
     
     // Modal Listeners
     confirmDeleteBtn.addEventListener('click', async () => {
@@ -204,7 +238,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     nameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') createWorkspace();
+        if (e.key === 'Enter') handleSave();
         if (e.key === 'Escape') toggleView(false);
     });
 
