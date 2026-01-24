@@ -4,8 +4,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Popup: DOM Loaded. Initializing...');
-    
     // UI References
     const mainView = document.getElementById('main-view');
     const createView = document.getElementById('create-view');
@@ -23,26 +21,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const confirmCreateBtn = document.getElementById('confirm-create-btn');
 
     // State
-    let selectedColor = '#0060df'; // Default
-    const availableColors = [
-        '#0060df', // Blue
-        '#008740', // Green
-        '#d70022', // Red
-        '#f5a623', // Orange
-        '#9059ff', // Purple
-        '#0590b0', // Cyan
-        '#ff4aa2', // Pink
-        '#ffb300'  // Amber
-    ];
+    let selectedColor = '#0060df'; 
+    const availableColors = ['#0060df', '#008740', '#d70022', '#f5a623', '#9059ff', '#0590b0', '#ff4aa2', '#ffb300'];
 
     /**
      * Loads workspaces from storage and renders them.
      */
     async function renderWorkspaces() {
         try {
-            const data = await browser.storage.local.get(['workspaces', 'activeWorkspaceId']);
+            // Get current window context
+            const currentWin = await browser.windows.getCurrent();
+            const data = await browser.storage.local.get('workspaces');
             const workspaces = data.workspaces || [];
-            const activeId = data.activeWorkspaceId;
 
             workspaceList.innerHTML = '';
 
@@ -55,17 +45,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nameSpan.textContent = workspace.name;
                 colorDiv.style.backgroundColor = workspace.color || '#cccccc';
 
-                if (workspace.id === activeId) {
+                // Check if this workspace belongs to the CURRENT window
+                if (workspace.windowId === currentWin.id) {
                     li.classList.add('active');
                     currentWorkspaceName.textContent = workspace.name;
                 }
 
+                // Interaction
                 li.addEventListener('click', () => switchWorkspace(workspace.id));
                 workspaceList.appendChild(clone);
             });
 
-            if (!activeId && workspaces.length > 0) {
-                currentWorkspaceName.textContent = 'None';
+            if (!currentWorkspaceName.textContent || currentWorkspaceName.textContent === 'Loading...') {
+                currentWorkspaceName.textContent = 'Unmanaged Window';
             }
         } catch (error) {
             console.error('Popup: Error rendering workspaces', error);
@@ -77,15 +69,11 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     async function switchWorkspace(id) {
         try {
-            // Optimistic UI update
-            const items = document.querySelectorAll('.workspace-item');
-            items.forEach(item => item.classList.remove('active'));
-            
             await browser.runtime.sendMessage({ 
                 type: 'SWITCH_WORKSPACE', 
                 workspaceId: id 
             });
-            
+            // Note: If switching to a new window, this popup might close automatically.
             renderWorkspaces();
         } catch (error) {
             console.error('Popup: Error switching workspace', error);
@@ -99,9 +87,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (showCreate) {
             mainView.classList.add('hidden');
             createView.classList.remove('hidden');
-            nameInput.value = ''; // Reset input
+            nameInput.value = '';
             nameInput.focus();
-            renderColorPicker(); // Reset selection
+            renderColorPicker();
         } else {
             createView.classList.add('hidden');
             mainView.classList.remove('hidden');
@@ -109,43 +97,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Render Color Picker Options
+     * Color Picker
      */
     function renderColorPicker() {
         colorPickerContainer.innerHTML = '';
-        selectedColor = availableColors[0]; // Reset to first
-
+        selectedColor = availableColors[0];
         availableColors.forEach((color, index) => {
             const div = document.createElement('div');
             div.className = 'color-option';
             div.style.backgroundColor = color;
             if (index === 0) div.classList.add('selected');
-
             div.addEventListener('click', () => {
                 document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
                 div.classList.add('selected');
                 selectedColor = color;
             });
-
             colorPickerContainer.appendChild(div);
         });
     }
 
     /**
-     * Create Workspace Logic
+     * Create Workspace
      */
     async function createWorkspace() {
         const name = nameInput.value.trim();
-        if (!name) {
-            nameInput.style.borderColor = '#d70022'; // Error state
-            return;
-        }
+        if (!name) return;
 
         const newWorkspace = {
             id: 'ws-' + Date.now(),
             name: name,
             color: selectedColor,
-            tabIds: [],
+            // Initial state: Background will handle the rest
+            tabs: [],
+            windowId: null,
             lastActive: Date.now()
         };
 
@@ -154,7 +138,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 type: 'CREATE_WORKSPACE', 
                 payload: newWorkspace 
             });
-            
             toggleView(false);
             renderWorkspaces();
         } catch (error) {
@@ -162,17 +145,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Event Listeners
+    // Handlers
     showCreateUiBtn.addEventListener('click', () => toggleView(true));
     cancelCreateBtn.addEventListener('click', () => toggleView(false));
     confirmCreateBtn.addEventListener('click', createWorkspace);
-    
-    // Handle Enter key in input
     nameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') createWorkspace();
         if (e.key === 'Escape') toggleView(false);
     });
 
-    // Initial render
     renderWorkspaces();
 });
