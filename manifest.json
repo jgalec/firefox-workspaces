@@ -17,6 +17,8 @@
   "background": {
     "scripts": [
       "background/storage.js",
+      "background/state.js",
+      "background/manager.js",
       "background/background.js"
     ]
   },
