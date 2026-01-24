@@ -1,0 +1,16 @@
+# Mozilla Extension Defaults
+*.log
+.sass-cache
+node_modules/
+.DS_Store
+__MACOSX/
+.vscode/
+build
+dist
+coverage
+
+# Project Specific
+docs/
+.gemini/
+web-ext-artifacts/
+

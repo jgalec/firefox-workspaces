@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Firefox Workspaces",
+  "version": "1.0.0",
+  "description": "Workspace management inspired by Microsoft Edge for Firefox.",
+  "permissions": [
+    "tabs",
+    "tabHide",
+    "storage",
+    "activeTab"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Open Workspaces"
+  },
+  "background": {
+    "scripts": ["background/background.js"]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "workspaces@juan.dev",
+      "strict_min_version": "109.0"
+    }
+  }
+}
