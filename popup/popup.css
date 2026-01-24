@@ -49,6 +49,7 @@ body {
     flex-direction: column;
     min-height: 300px;
     max-height: 500px;
+    overflow: hidden; /* Prevent container from scrolling */
 }
 
 .hidden {
@@ -57,8 +58,12 @@ body {
 
 /* Header */
 .popup-header {
-    padding: 16px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0; /* Keep header size fixed */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -72,13 +77,41 @@ body {
     font-weight: 600;
 }
 
-/* Active Info */
+.icon-btn {
+    background-color: var(--primary-blue);
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+    background-color: var(--primary-blue-hover);
+}
+
+/* Main content wrapper */
+main {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+/* Active Info (Fixed at top of main) */
 .active-info {
     padding: 12px 16px;
     background-color: var(--hover-light);
     font-size: 13px;
     display: flex;
     align-items: center;
+    flex-shrink: 0; /* Keep info bar size fixed */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -120,11 +153,11 @@ body {
     }
 }
 
-/* Workspace List */
+/* Workspace List (Scrollable area) */
 .workspace-list {
     list-style: none;
     padding: 8px 0;
-    overflow-y: auto;
+    overflow-y: auto; /* Only the list scrolls */
     flex-grow: 1; 
 }
 

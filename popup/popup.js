@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             workspaceList.innerHTML = '';
             
             // Reset header text default
-            currentWorkspaceName.textContent = 'This Window (Not Saved)';
+            currentWorkspaceName.textContent = 'This Window';
             currentWorkspaceName.classList.add('unmanaged');
 
             workspaces.forEach(workspace => {

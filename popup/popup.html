@@ -10,6 +10,7 @@
     <div class="container" id="main-view">
         <header class="popup-header">
             <h1>Workspaces</h1>
+            <button id="show-create-ui-btn" class="icon-btn" title="New Workspace">New +</button>
         </header>
         
         <main>
@@ -22,12 +23,6 @@
                 <!-- Workspaces will be injected here -->
             </ul>
         </main>
-
-        <footer class="popup-footer">
-            <button id="show-create-ui-btn" class="btn-primary">
-                <span class="icon">+</span> New Workspace
-            </button>
-        </footer>
     </div>
 
     <!-- Create Workspace View (Hidden by default) -->
@@ -67,7 +62,7 @@
         <li class="workspace-item">
             <div class="workspace-color"></div>
             <span class="workspace-name"></span>
-            <span class="active-indicator">●</span>
+            <span class="status-indicator"></span>
             <button class="delete-btn" title="Delete Workspace">×</button>
         </li>
     </template>
