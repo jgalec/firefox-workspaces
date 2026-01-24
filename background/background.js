@@ -18,7 +18,13 @@ browser.runtime.onMessage.addListener(async (message) => {
         newWs.windowId = null; 
         await StorageService.saveWorkspace(newWs);
         await MenusManager.updateSubmenus(); // Refresh context menu
-        await WorkspaceManager.openWorkspace(newWs.id);
+        
+        // Use the flag to decide if we open a NEW window or use the CURRENT one
+        if (message.fromCurrentWindow) {
+            await WorkspaceManager.captureExistingWindow(newWs.id);
+        } else {
+            await WorkspaceManager.openWorkspace(newWs.id);
+        }
         return { success: true };
     }
     if (message.type === 'DELETE_WORKSPACE') {

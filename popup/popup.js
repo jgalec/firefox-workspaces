@@ -27,10 +27,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const cancelCreateBtn = document.getElementById('cancel-create-btn');
     const confirmCreateBtn = document.getElementById('confirm-create-btn');
 
+    // Options Menu References
+    const optionsMenuBtn = document.getElementById('options-menu-btn');
+    const optionsDropdown = document.getElementById('options-dropdown');
+    const saveWindowBtn = document.getElementById('save-window-btn');
+    const exportWorkspacesBtn = document.getElementById('export-workspaces-btn');
+
     // State
     let selectedColor = '#0060df'; 
     let workspaceToDeleteId = null;
-    let editingWorkspaceId = null; // Track editing state
+    let editingWorkspaceId = null; 
+    let saveFromCurrentWindow = false; // New flag for feature 1
     const availableColors = ['#0060df', '#008740', '#d70022', '#f5a623', '#9059ff', '#0590b0', '#ff4aa2', '#ffb300'];
 
     /**
@@ -156,7 +163,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 await browser.runtime.sendMessage({ 
                     type: 'CREATE_WORKSPACE', 
-                    payload: newWorkspace 
+                    payload: newWorkspace,
+                    fromCurrentWindow: saveFromCurrentWindow // New flag
                 });
                 toggleView(false);
                 renderWorkspaces();
@@ -181,19 +189,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nameInput.value = data.name;
                 selectedColor = data.color || '#0060df';
             } else {
-                createViewTitle.textContent = 'New Workspace';
+                // 'create' mode
+                if (!saveFromCurrentWindow) {
+                    createViewTitle.textContent = 'New Workspace';
+                }
                 confirmCreateBtn.textContent = 'Create';
                 editingWorkspaceId = null;
                 nameInput.value = '';
                 selectedColor = availableColors[0];
             }
             
-            renderColorPicker(); // Re-render to show selected color
+            renderColorPicker(); 
             nameInput.focus();
         } else {
             createView.classList.add('hidden');
             mainView.classList.remove('hidden');
             editingWorkspaceId = null;
+            saveFromCurrentWindow = false; // Reset flag
         }
     }
 
@@ -240,6 +252,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     nameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleSave();
         if (e.key === 'Escape') toggleView(false);
+    });
+
+    // Options Menu Handlers
+    optionsMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        optionsDropdown.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', () => {
+        optionsDropdown.classList.add('hidden');
+    });
+
+    saveWindowBtn.addEventListener('click', () => {
+        optionsDropdown.classList.add('hidden');
+        saveFromCurrentWindow = true;
+        toggleView(true, 'create');
+        createViewTitle.textContent = 'Save Window as Workspace';
+    });
+
+    exportWorkspacesBtn.addEventListener('click', async () => {
+        optionsDropdown.classList.add('hidden');
+        await exportWorkspaces();
     });
 
     renderWorkspaces();

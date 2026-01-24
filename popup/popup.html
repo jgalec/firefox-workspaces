@@ -10,7 +10,16 @@
     <div class="container" id="main-view">
         <header class="popup-header">
             <h1>Workspaces</h1>
-            <button id="show-create-ui-btn" class="icon-btn" title="New Workspace">New +</button>
+            <div class="header-actions">
+                <button id="show-create-ui-btn" class="icon-btn primary" title="New Workspace">New +</button>
+                <div class="options-container">
+                    <button id="options-menu-btn" class="icon-btn secondary" title="More options">⋮</button>
+                    <div id="options-dropdown" class="options-dropdown hidden">
+                        <button id="save-window-btn" class="dropdown-item">Save tabs to a workspace</button>
+                        <button id="export-workspaces-btn" class="dropdown-item">Export workspaces</button>
+                    </div>
+                </div>
+            </div>
         </header>
         
         <main>

@@ -210,6 +210,50 @@ const WorkspaceManager = {
     },
 
     /**
+     * Converts the current unmanaged window into a managed workspace.
+     */
+    async captureExistingWindow(workspaceId) {
+        const currentWin = await browser.windows.getCurrent();
+        if (!currentWin) return;
+
+        console.log(`Manager: Capturing window ${currentWin.id} for workspace ${workspaceId}`);
+
+        // Link immediately in memory
+        StateManager.linkWindow(currentWin.id, workspaceId);
+        
+        // Force a direct save logic here to ensure initial population
+        // (Reusing saveWindowState might fail if async timing is off with storage)
+        try {
+            const tabs = await browser.tabs.query({ windowId: currentWin.id });
+            const tabData = tabs.map(t => ({
+                url: t.url,
+                title: t.title,
+                pinned: t.pinned,
+                active: t.active,
+                groupId: t.groupId
+            }));
+
+            const workspaces = await StorageService.getWorkspaces();
+            const wsIndex = workspaces.findIndex(w => w.id === workspaceId);
+            
+            if (wsIndex > -1) {
+                workspaces[wsIndex].tabs = tabData.map(t => ({ 
+                    url: t.url, 
+                    title: t.title, 
+                    pinned: t.pinned,
+                    active: t.active 
+                }));
+                workspaces[wsIndex].windowId = currentWin.id;
+                
+                await browser.storage.local.set({ workspaces: workspaces });
+                console.log(`Manager: Captured ${tabData.length} tabs.`);
+            }
+        } catch (e) {
+            console.error('Manager: Failed to capture window state', e);
+        }
+    },
+
+    /**
      * Updates workspace metadata (name, color).
      */
     async updateWorkspace(id, data) {
