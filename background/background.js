@@ -17,19 +17,19 @@ browser.runtime.onMessage.addListener(async (message) => {
         newWs.groups = [];
         newWs.windowId = null; 
         await StorageService.saveWorkspace(newWs);
+        await MenusManager.updateSubmenus(); // Refresh context menu
         await WorkspaceManager.openWorkspace(newWs.id);
         return { success: true };
     }
     if (message.type === 'DELETE_WORKSPACE') {
         console.log(`Background: Deleting workspace ${message.workspaceId}`);
-        // 1. Close associated window if open
         const workspaces = await StorageService.getWorkspaces();
         const ws = workspaces.find(w => w.id === message.workspaceId);
         if (ws && ws.windowId) {
             try { await browser.windows.remove(ws.windowId); } catch (e) {}
         }
-        // 2. Delete from storage
         await StorageService.deleteWorkspace(message.workspaceId);
+        await MenusManager.updateSubmenus(); // Refresh context menu
         return { success: true };
     }
 });
@@ -77,8 +77,15 @@ browser.windows.onRemoved.addListener((windowId) => {
 });
 
 // --- Initialization ---
-browser.runtime.onStartup.addListener(() => WorkspaceManager.hydrateMap());
-browser.runtime.onInstalled.addListener(() => WorkspaceManager.hydrateMap());
+browser.runtime.onStartup.addListener(() => {
+    WorkspaceManager.hydrateMap();
+    MenusManager.init();
+});
+browser.runtime.onInstalled.addListener(() => {
+    WorkspaceManager.hydrateMap();
+    MenusManager.init();
+});
 
 // Initial run
 WorkspaceManager.hydrateMap();
+MenusManager.init();

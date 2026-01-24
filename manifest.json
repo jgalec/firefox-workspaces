@@ -8,7 +8,8 @@
     "tabHide",
     "storage",
     "activeTab",
-    "tabGroups"
+    "tabGroups",
+    "menus"
   ],
   "action": {
     "default_popup": "popup/popup.html",
@@ -18,6 +19,7 @@
     "scripts": [
       "background/storage.js",
       "background/state.js",
+      "background/menus.js",
       "background/manager.js",
       "background/background.js"
     ]
