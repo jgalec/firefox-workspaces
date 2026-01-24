@@ -3,6 +3,7 @@
 :root {
     --primary-blue: #0060df;
     --primary-blue-hover: #003eaa;
+    --success-green: #008740;
     --bg-light: #ffffff;
     --bg-dark: #1c1b22;
     --text-light: #15141a;
@@ -99,6 +100,24 @@ body {
 
 .active-info .name {
     font-weight: 600;
+    color: var(--text-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .active-info .name {
+        color: var(--text-dark);
+    }
+}
+
+.active-info .name.unmanaged {
+    font-weight: normal;
+    color: var(--secondary-text-light);
+}
+
+@media (prefers-color-scheme: dark) {
+    .active-info .name.unmanaged {
+        color: var(--secondary-text-dark);
+    }
 }
 
 /* Workspace List */
@@ -142,14 +161,28 @@ body {
     text-overflow: ellipsis;
 }
 
-.active-indicator {
-    color: var(--primary-blue);
-    font-size: 14px;
-    visibility: hidden;
+.status-indicator {
+    font-size: 11px;
+    margin-right: 8px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+    display: none;
 }
 
-.workspace-item.active .active-indicator {
-    visibility: visible;
+/* Active (Current Window) */
+.workspace-item.active .status-indicator {
+    display: inline-block;
+    background-color: rgba(0, 96, 223, 0.1);
+    color: var(--primary-blue);
+    content: "Active"; /* Fallback */
+}
+
+/* Open (Other Window) */
+.workspace-item.open .status-indicator {
+    display: inline-block;
+    background-color: rgba(0, 135, 64, 0.1);
+    color: var(--success-green);
 }
 
 .workspace-item.active .workspace-name {
@@ -167,6 +200,7 @@ body {
     margin-left: 8px;
     opacity: 0;
     transition: opacity 0.2s, color 0.2s;
+    border-radius: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -180,9 +214,19 @@ body {
 }
 
 .delete-btn:hover {
-    color: var(--danger-color);
+    background-color: #ff003922;
+    color: #d70022;
 }
 
+.delete-btn.confirm-state {
+    opacity: 1 !important;
+    width: auto;
+    font-size: 12px;
+    background-color: #d70022;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
 
 /* Create Form */
 .create-form {

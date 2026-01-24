@@ -37,23 +37,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function renderWorkspaces() {
         try {
             const currentWin = await browser.windows.getCurrent();
+            const allWindows = await browser.windows.getAll();
+            const openWindowIds = new Set(allWindows.map(w => w.id));
+
             const data = await browser.storage.local.get('workspaces');
             const workspaces = data.workspaces || [];
 
             workspaceList.innerHTML = '';
+            
+            // Reset header text default
+            currentWorkspaceName.textContent = 'This Window (Not Saved)';
+            currentWorkspaceName.classList.add('unmanaged');
 
             workspaces.forEach(workspace => {
                 const clone = template.content.cloneNode(true);
                 const li = clone.querySelector('.workspace-item');
                 const colorDiv = clone.querySelector('.workspace-color');
                 const nameSpan = clone.querySelector('.workspace-name');
+                const statusSpan = clone.querySelector('.status-indicator');
 
                 nameSpan.textContent = workspace.name;
                 colorDiv.style.backgroundColor = workspace.color || '#cccccc';
 
+                // Status Logic
                 if (workspace.windowId === currentWin.id) {
                     li.classList.add('active');
+                    statusSpan.textContent = 'Active';
+                    // Update Header
                     currentWorkspaceName.textContent = workspace.name;
+                    currentWorkspaceName.classList.remove('unmanaged');
+                } else if (workspace.windowId && openWindowIds.has(workspace.windowId)) {
+                    li.classList.add('open');
+                    statusSpan.textContent = 'Open';
                 }
 
                 li.addEventListener('click', () => switchWorkspace(workspace.id));
@@ -62,15 +77,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const deleteBtn = clone.querySelector('.delete-btn');
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    promptDelete(workspace.id, workspace.name);
+                    if (deleteBtn.classList.contains('confirm-state')) {
+                        deleteWorkspace(workspace.id);
+                    } else {
+                        // Use modal instead of inline confirm for better UX
+                        promptDelete(workspace.id, workspace.name);
+                    }
                 });
                 
                 workspaceList.appendChild(clone);
             });
 
-            if (!currentWorkspaceName.textContent || currentWorkspaceName.textContent === 'Loading...') {
-                currentWorkspaceName.textContent = 'Unmanaged Window';
-            }
         } catch (error) {
             console.error('Popup: Error rendering workspaces', error);
         }
