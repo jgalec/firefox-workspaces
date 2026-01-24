@@ -15,6 +15,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const nameInput = document.getElementById('new-ws-name');
     const colorPickerContainer = document.getElementById('color-picker');
     
+    // Delete Modal References
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteNameDisplay = document.getElementById('delete-ws-name-display');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    
     // Buttons
     const showCreateUiBtn = document.getElementById('show-create-ui-btn');
     const cancelCreateBtn = document.getElementById('cancel-create-btn');
@@ -22,6 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // State
     let selectedColor = '#0060df'; 
+    let workspaceToDeleteId = null;
     const availableColors = ['#0060df', '#008740', '#d70022', '#f5a623', '#9059ff', '#0590b0', '#ff4aa2', '#ffb300'];
 
     /**
@@ -29,7 +36,6 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     async function renderWorkspaces() {
         try {
-            // Get current window context
             const currentWin = await browser.windows.getCurrent();
             const data = await browser.storage.local.get('workspaces');
             const workspaces = data.workspaces || [];
@@ -45,14 +51,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nameSpan.textContent = workspace.name;
                 colorDiv.style.backgroundColor = workspace.color || '#cccccc';
 
-                // Check if this workspace belongs to the CURRENT window
                 if (workspace.windowId === currentWin.id) {
                     li.classList.add('active');
                     currentWorkspaceName.textContent = workspace.name;
                 }
 
-                // Interaction
                 li.addEventListener('click', () => switchWorkspace(workspace.id));
+                
+                // Delete Logic
+                const deleteBtn = clone.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    promptDelete(workspace.id, workspace.name);
+                });
+                
                 workspaceList.appendChild(clone);
             });
 
@@ -65,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Switch Workspace Request
+     * Actions
      */
     async function switchWorkspace(id) {
         try {
@@ -73,15 +85,52 @@ document.addEventListener('DOMContentLoaded', async () => {
                 type: 'SWITCH_WORKSPACE', 
                 workspaceId: id 
             });
-            // Note: If switching to a new window, this popup might close automatically.
             renderWorkspaces();
         } catch (error) {
             console.error('Popup: Error switching workspace', error);
         }
     }
 
+    async function deleteWorkspace(id) {
+        try {
+            await browser.runtime.sendMessage({ 
+                type: 'DELETE_WORKSPACE', 
+                workspaceId: id 
+            });
+            renderWorkspaces();
+        } catch (error) {
+            console.error('Popup: Error deleting workspace', error);
+        }
+    }
+
+    async function createWorkspace() {
+        const name = nameInput.value.trim();
+        if (!name) return;
+
+        const newWorkspace = {
+            id: 'ws-' + Date.now(),
+            name: name,
+            color: selectedColor,
+            tabs: [],
+            groups: [],
+            windowId: null,
+            lastActive: Date.now()
+        };
+
+        try {
+            await browser.runtime.sendMessage({ 
+                type: 'CREATE_WORKSPACE', 
+                payload: newWorkspace 
+            });
+            toggleView(false);
+            renderWorkspaces();
+        } catch (error) {
+            console.error('Popup: Error creating workspace', error);
+        }
+    }
+
     /**
-     * View Toggling
+     * UI Helpers
      */
     function toggleView(showCreate) {
         if (showCreate) {
@@ -96,9 +145,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    /**
-     * Color Picker
-     */
+    function promptDelete(id, name) {
+        workspaceToDeleteId = id;
+        deleteNameDisplay.textContent = name;
+        deleteModal.classList.remove('hidden');
+    }
+
     function renderColorPicker() {
         colorPickerContainer.innerHTML = '';
         selectedColor = availableColors[0];
@@ -116,39 +168,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    /**
-     * Create Workspace
-     */
-    async function createWorkspace() {
-        const name = nameInput.value.trim();
-        if (!name) return;
-
-        const newWorkspace = {
-            id: 'ws-' + Date.now(),
-            name: name,
-            color: selectedColor,
-            // Initial state: Background will handle the rest
-            tabs: [],
-            windowId: null,
-            lastActive: Date.now()
-        };
-
-        try {
-            await browser.runtime.sendMessage({ 
-                type: 'CREATE_WORKSPACE', 
-                payload: newWorkspace 
-            });
-            toggleView(false);
-            renderWorkspaces();
-        } catch (error) {
-            console.error('Popup: Error creating workspace', error);
-        }
-    }
-
-    // Handlers
+    // Event Listeners
     showCreateUiBtn.addEventListener('click', () => toggleView(true));
     cancelCreateBtn.addEventListener('click', () => toggleView(false));
     confirmCreateBtn.addEventListener('click', createWorkspace);
+    
+    // Modal Listeners
+    confirmDeleteBtn.addEventListener('click', async () => {
+        if (workspaceToDeleteId) {
+            await deleteWorkspace(workspaceToDeleteId);
+            workspaceToDeleteId = null;
+            deleteModal.classList.add('hidden');
+        }
+    });
+    cancelDeleteBtn.addEventListener('click', () => {
+        workspaceToDeleteId = null;
+        deleteModal.classList.add('hidden');
+    });
+
     nameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') createWorkspace();
         if (e.key === 'Escape') toggleView(false);

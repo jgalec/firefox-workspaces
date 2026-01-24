@@ -20,6 +20,18 @@ browser.runtime.onMessage.addListener(async (message) => {
         await WorkspaceManager.openWorkspace(newWs.id);
         return { success: true };
     }
+    if (message.type === 'DELETE_WORKSPACE') {
+        console.log(`Background: Deleting workspace ${message.workspaceId}`);
+        // 1. Close associated window if open
+        const workspaces = await StorageService.getWorkspaces();
+        const ws = workspaces.find(w => w.id === message.workspaceId);
+        if (ws && ws.windowId) {
+            try { await browser.windows.remove(ws.windowId); } catch (e) {}
+        }
+        // 2. Delete from storage
+        await StorageService.deleteWorkspace(message.workspaceId);
+        return { success: true };
+    }
 });
 
 // --- Auto-Save Listeners ---
