@@ -1,5 +1,5 @@
 /**
- * Storage Service for Firefox Workspaces
+ * Storage Service for Workspaces
  * Handles all interactions with browser.storage.local
  */
 

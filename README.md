@@ -1,4 +1,4 @@
-# Firefox Workspaces
+# Workspaces
 
 A lightweight workspace manager for Firefox, inspired by the workspaces feature of Microslop Edge.
 
