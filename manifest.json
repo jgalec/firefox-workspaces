@@ -15,13 +15,16 @@
   ],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Open Workspaces"
+    "default_title": "Open Workspaces",
+    "default_icon": "icons/default-icon.svg"
   },
   "background": {
     "scripts": [
+      "background/events.js",
       "background/storage.js",
       "background/state.js",
       "background/menus.js",
+      "background/indicator.js",
       "background/manager.js",
       "background/background.js"
     ]

@@ -102,12 +102,15 @@ browser.windows.onRemoved.addListener((windowId) => {
 browser.runtime.onStartup.addListener(() => {
     WorkspaceManager.hydrateMap();
     MenusManager.init();
+    IndicatorManager.init();
 });
 browser.runtime.onInstalled.addListener(() => {
     WorkspaceManager.hydrateMap();
     MenusManager.init();
+    IndicatorManager.init();
 });
 
 // Initial run
 WorkspaceManager.hydrateMap();
 MenusManager.init();
+IndicatorManager.init();

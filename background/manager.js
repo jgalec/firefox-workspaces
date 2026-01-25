@@ -17,6 +17,8 @@ const WorkspaceManager = {
         for (const ws of workspaces) {
             if (ws.windowId && openWindowIds.has(ws.windowId)) {
                 StateManager.linkWindow(ws.windowId, ws.id);
+                // Restore Badge via Event
+                EventBus.emit(Events.WINDOW_LINKED, { windowId: ws.windowId, workspaceId: ws.id });
             } else if (ws.windowId) {
                 // Window closed externally
                 ws.windowId = null;
@@ -136,6 +138,8 @@ const WorkspaceManager = {
             ws.windowId = newWindowId;
             StateManager.linkWindow(newWindowId, ws.id);
             await StorageService.saveWorkspace(ws);
+            
+            EventBus.emit(Events.WORKSPACE_OPENED, { windowId: newWindowId, workspace: ws });
 
             if (ws.tabs && ws.tabs.length > 0) {
                 const createdTabIds = [];
@@ -247,7 +251,12 @@ const WorkspaceManager = {
         if (!currentWin) return;
 
         console.log(`Manager: Capturing window ${currentWin.id} for workspace ${workspaceId}`);
+        // Link immediately in memory
         StateManager.linkWindow(currentWin.id, workspaceId);
+
+        EventBus.emit(Events.WINDOW_LINKED, { windowId: currentWin.id, workspaceId });
+        
+        // Force a direct save logic here to ensure initial population
         
         try {
             const tabs = await browser.tabs.query({ windowId: currentWin.id });
@@ -291,6 +300,8 @@ const WorkspaceManager = {
             if (data.name) ws.name = data.name;
             if (data.color) ws.color = data.color;
             await StorageService.saveWorkspace(ws);
+            
+            EventBus.emit(Events.WORKSPACE_UPDATED, { workspace: ws });
         }
     }
 };
