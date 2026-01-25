@@ -589,3 +589,15 @@ main {
     display: flex;
     gap: 12px;
 }
+.dropdown-separator {
+    height: 1px;
+    background-color: var(--border-light);
+    margin: 4px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .dropdown-separator {
+        background-color: var(--border-dark);
+    }
+}
+

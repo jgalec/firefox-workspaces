@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmCreateBtn: document.getElementById('confirm-create-btn'),
         optionsMenuBtn: document.getElementById('options-menu-btn'),
         optionsDropdown: document.getElementById('options-dropdown'),
-        saveWindowBtn: document.getElementById('save-window-btn')
+        saveWindowBtn: document.getElementById('save-window-btn'),
+        exportWorkspacesBtn: document.getElementById('export-workspaces-btn')
     };
 
     // Global availability for cross-module access if needed
@@ -46,6 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', () => uiRefs.optionsDropdown.classList.add('hidden'));
 
     uiRefs.saveWindowBtn.addEventListener('click', () => PopupLogic.startCreate('save-window'));
+
+    uiRefs.exportWorkspacesBtn.addEventListener('click', () => {
+        uiRefs.optionsDropdown.classList.add('hidden');
+        PopupLogic.exportData();
+    });
 
     uiRefs.nameInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') PopupLogic.handleSave(uiRefs.nameInput.value);
