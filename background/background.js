@@ -13,6 +13,8 @@ browser.runtime.onMessage.addListener(async (message) => {
     }
     if (message.type === 'CREATE_WORKSPACE') {
         const newWs = message.payload;
+        // Securely generate a new ID to prevent overwriting existing workspaces
+        newWs.id = `ws-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         newWs.tabs = [];
         newWs.groups = [];
         newWs.windowId = null; 
