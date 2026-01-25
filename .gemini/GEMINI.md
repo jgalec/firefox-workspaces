@@ -21,6 +21,9 @@
 - **StorageService (`storage.js`):** Single entry point for `browser.storage.local`.
 - **StateManager (`state.js`):** Live mapping of `windowId` to `workspaceId`.
 - **WorkspaceManager (`manager.js`):** Orchestrates window creation and tab restoration.
+- **IndicatorManager (`indicator.js`):** Dynamically updates the browser toolbar icon color.
+- **EventBus (`events.js`):** Lightweight system to decouple logic from UI side-effects.
+- **Lazy Loading:** Mechanism to restore tabs in a "discarded" state to save memory.
 - **Lock Mechanism:** Prevents auto-save collisions during restoration.
 
 ## Design System Summary
