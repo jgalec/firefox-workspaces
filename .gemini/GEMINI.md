@@ -1,42 +1,37 @@
 ## Project Rules
-- Communication with the user: Spanish.
-- Code (variables, functions, comments, documentation): English.
+- **Communication:** Always respond to the user in Spanish.
+- **Code:** Variables, functions, comments, and internal documentation must be in English.
+- **Tone:** Direct, technical, and professional.
+
+## Development Workflow & Documentation
+**CRITICAL:** Before proposing or implementing any major feature, refactoring, or design change, you MUST read and follow the specialized documentation in the `docs/` folder:
+
+- **`docs/technical-overview.md`:** Detailed architecture, event-handling logic, and the state-hydration process. Refer to this for core logic changes.
+- **`docs/design-guidelines.md`:** Visual standards, spacing, and accessibility rules. Refer to this for any UI modifications.
+- **`docs/features.md`:** Current capabilities and functional scope.
 
 ## WebExtension Anatomy (MDN Standards)
-Reference: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Anatomy_of_a_WebExtension
+1. **manifest.json**: Metadata, permissions (`storage`, `tabs`, `tabHide`, `tabGroups`, `menus`), and Gecko ID (`my-extension@username`).
+2. **Background Scripts**: Event-driven architecture via `WorkspaceManager`.
+3. **UI Elements**: Popup-based main interface and dedicated Option/Restore views.
 
-1. **manifest.json**: The single required file. Holds metadata, permissions, and paths.
-2. **Background Scripts**:
-   - The extension's central "brain".
-   - Handles events (browser startup, tab changes).
-   - In Firefox MV3, these are non-persistent scripts (Event Pages).
-3. **Content Scripts**:
-   - JavaScript/CSS injected into web pages.
-   - Access/modify the DOM of pages.
-   - Communicate with background scripts via messages.
-4. **UI Elements**:
-   - **Browser Action (Popup)**: The button in the toolbar and its dropdown HTML.
-   - **Sidebar Action**: A panel displayed in the browser's sidebar.
-   - **Options Page**: A dedicated page for extension settings.
-5. **Web Accessible Resources**:
-   - Assets (images, fonts, HTML) bundled with the extension that need to be accessible by web page contexts.
+## Technical Architecture & Patterns (Summary)
+*For full details, see `docs/technical-overview.md`.*
 
-## Mozilla Protocol Color Palette (Reference)
-Source: https://protocol.mozilla.org/docs/fundamentals/color
+- **StorageService (`storage.js`):** Single entry point for `browser.storage.local`.
+- **StateManager (`state.js`):** Live mapping of `windowId` to `workspaceId`.
+- **WorkspaceManager (`manager.js`):** Orchestrates window creation and tab restoration.
+- **Lock Mechanism:** Prevents auto-save collisions during restoration.
 
-### Neutrals
-- **Mozilla Black:** `#161616` (Primary background dark / Primary text light)
-- **Mozilla White:** `#fafafa` (Primary background light / Primary text dark)
-- **Mozilla Gray +1:** `#e8e8e8` (Border light)
-- **Mozilla Gray -1:** `#6d6d6d` (Secondary text light)
-- **Mozilla Gray:** `#b3b3b3` (Secondary text dark / Input borders)
-- **Mozilla Gray -2:** `#414141` (Border dark)
+## Design System Summary
+*For full details, see `docs/design-guidelines.md`.*
 
-### Semantic Colors
-- **Success (Mozilla Green):** `#00d230`
-- **Error (Red 50):** `#ff4f5e`
-- **Warning (Orange 50):** `#ff7139`
-
-### Brand Colors
-- **Primary Blue:** `#0060df`
-- **Primary Blue Hover:** `#003eaa`
+- **Framework:** Mozilla Protocol (Colors, Spacing, Typography).
+- **Iconography:** **Heroicons** only.
+- **Implementation:** Use **CSS Masks** (`.icon-svg`) for dynamic `currentColor` support.
+- **Palette:**
+    - **Mozilla Black:** `#161616` (Primary Background Dark)
+    - **Mozilla White:** `#fafafa` (Primary Background Light)
+    - **Primary Blue:** `#0060df`
+    - **Success Green:** `#00d230`
+    - **Error Red:** `#ff4f5e`
