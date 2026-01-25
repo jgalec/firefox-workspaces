@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restore Workspaces - Firefox Workspaces</title>
+    <link rel="stylesheet" href="import.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Restore Workspaces</h1>
+            <p>Select a backup JSON file to restore your workspaces. <br> 
+            <strong class="warning">Warning: This will overwrite all current workspaces.</strong></p>
+        </header>
+        <main>
+            <div class="upload-area" id="drop-zone">
+                <div class="icon">📂</div>
+                <p>Click to select file or drag & drop here</p>
+                <input type="file" id="file-input" accept=".json" hidden>
+            </div>
+            <div id="status-area" class="status hidden">
+                <p id="status-text"></p>
+            </div>
+        </main>
+        <footer>
+            <button id="close-btn" class="secondary-btn">Close Tab</button>
+        </footer>
+    </div>
+    <script src="import.js"></script>
+</body>
+</html>

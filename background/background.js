@@ -43,9 +43,15 @@ browser.runtime.onMessage.addListener(async (message) => {
         return { success: true };
     }
     if (message.type === 'UPDATE_WORKSPACE') {
-        console.log(`Background: Updating workspace ${message.workspaceId}`);
-        await WorkspaceManager.updateWorkspace(message.workspaceId, message.payload);
-        await MenusManager.updateSubmenus();
+        if (message.workspaceId === 'import_destructive') {
+            console.log('Background: Destructive import detected. Re-hydrating...');
+            await WorkspaceManager.hydrateMap();
+            await MenusManager.updateSubmenus();
+        } else {
+            console.log(`Background: Updating workspace ${message.workspaceId}`);
+            await WorkspaceManager.updateWorkspace(message.workspaceId, message.payload);
+            await MenusManager.updateSubmenus();
+        }
         return { success: true };
     }
 });

@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         optionsMenuBtn: document.getElementById('options-menu-btn'),
         optionsDropdown: document.getElementById('options-dropdown'),
         saveWindowBtn: document.getElementById('save-window-btn'),
-        exportWorkspacesBtn: document.getElementById('export-workspaces-btn')
+        exportWorkspacesBtn: document.getElementById('export-workspaces-btn'),
+        restoreWorkspacesBtn: document.getElementById('restore-workspaces-btn')
     };
 
     // Global availability
@@ -63,6 +64,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     uiRefs.exportWorkspacesBtn.addEventListener('click', () => {
         uiRefs.optionsDropdown.classList.add('hidden');
         PopupIO.exportData();
+    });
+
+    uiRefs.restoreWorkspacesBtn.addEventListener('click', () => {
+        uiRefs.optionsDropdown.classList.add('hidden');
+        browser.tabs.create({ url: browser.runtime.getURL('options/restore.html') });
     });
 
     uiRefs.nameInput.addEventListener('keydown', (e) => {
