@@ -31,9 +31,13 @@ browser.runtime.onMessage.addListener(async (message) => {
         console.log(`Background: Deleting workspace ${message.workspaceId}`);
         const workspaces = await StorageService.getWorkspaces();
         const ws = workspaces.find(w => w.id === message.workspaceId);
+        
+        // Unlink immediately to prevent auto-save resurrection during close
         if (ws && ws.windowId) {
+            StateManager.unlinkWindow(ws.windowId);
             try { await browser.windows.remove(ws.windowId); } catch (e) {}
         }
+        
         await StorageService.deleteWorkspace(message.workspaceId);
         await MenusManager.updateSubmenus(); 
         return { success: true };
