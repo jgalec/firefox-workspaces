@@ -15,6 +15,8 @@ Yes, before you ask, this extension was made with Gemini's help. As a junior dev
 - **Isolated Workspaces:** Save groups of tabs and windows as separate workspaces.
 - **Native Look & Feel:** Designed following the Mozilla Protocol system for a seamless integration with Firefox.
 - **Persistent State:** Workspaces are automatically saved and restored exactly as you left them (tabs, pins, and groups).
+- **High Performance:** Implements **Lazy Loading** (tab discarding) for near-instant restoration of windows with hundreds of tabs.
+- **Dynamic Indicators:** The toolbar icon color changes dynamically to match the active workspace in each window.
 - **Multi-Account Containers:** Native integration with [Firefox Containers](https://addons.mozilla.org/en-US/firefox/addon/multi-account-containers/) to keep your personal and professional contexts separated within the same workspace.
 - **Explicit Reordering:** A dedicated reorder mode to organize your workspace list exactly how you want.
 - **Backup & Restore:** Full destructive restoration support (legacy style) to keep your data safe and portable.

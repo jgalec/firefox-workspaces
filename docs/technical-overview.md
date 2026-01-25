@@ -20,11 +20,14 @@ The extension uses a persistent background script (non-persistent in Manifest V3
 - **Storage Service (`storage.js`):** A wrapper around `browser.storage.local`. It abstracts the complexity of fetching and saving the workspace array, ensuring atomic updates.
 - **State Manager (`state.js`):** Maintains a live mapping between browser `windowId` and extension `workspaceId`. This is critical because `windowId` is volatile and changes every time a window is closed and reopened.
 - **Workspace Manager (`manager.js`):** The orchestrator. It handles the "Hydration" process (linking existing windows to storage objects on startup) and the "Capture" logic for converting unmanaged windows into workspaces.
+- **Indicator Manager (`indicator.js`):** Listens to workspace events to update the browser's toolbar icon color dynamically using SVG data URLs.
+- **Event Bus (`events.js`):** A lightweight internal event system that decouples business logic from UI side-effects, allowing the Manager to notify the Indicator and Menus without direct dependencies.
 
 ### 1.2 Event-Driven Persistence
 Instead of manual saving, the extension employs a reactive model:
 - **Listeners:** The manager listens to `tabs.onUpdated`, `tabs.onMoved`, `tabs.onCreated`, and `tabs.onRemoved`.
 - **Throttling/Locking:** During workspace restoration (opening a window), a "Lock" is applied to prevent the save-listeners from overwriting the clean workspace state with the intermediate tab states while the window is still loading.
+- **Lazy Loading Implementation:** During restoration, tabs are created with the `discarded: true` property (except for pinned and active tabs). This utilizes Firefox's native lazy-loading capability to minimize resource usage during mass tab restoration.
 
 ## 2. Step-by-Step Implementation Log
 
