@@ -58,6 +58,11 @@ Instead of manual saving, the extension employs a reactive model:
 - **Security:** Integrated custom modals to warn users that their current data will be purged.
 - **Workflow:** Upon successful restoration, the background script is forced to "Re-hydrate" (refreshing all window mappings) to ensure the UI and storage stay in sync.
 
+### Phase 7: Container Support & Atomic Restoration
+- **Multi-Account Containers:** Integrated `contextualIdentities` and `cookies` permissions to capture and restore the `cookieStoreId` of each tab.
+- **Atomic Restoration:** Refactored the window opening logic to create tabs one-by-one with their final state (pinned, container) from the start. This prevents the "UI jump" where tabs would flicker or move after the window was created.
+- **Resilience:** Implemented a fallback mechanism that restores tabs to the default container if their original container has been deleted by the user.
+
 ## 3. Future Considerations
 - **Syncing:** Possible integration with Firefox Sync for cross-device workspaces.
 - **Performance:** Throttling `saveWindowState` for users with hundreds of tabs.

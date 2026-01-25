@@ -11,7 +11,8 @@ This document details the core functionalities implemented in the Firefox Worksp
 ## 2. Session Persistence
 - **Automatic Sync:** Real-time saving of tab changes (creation, movement, updates) within a workspace.
 - **Tab Groups:** Support for Firefox's native tab groups (experimental) to maintain complex tab structures.
-- **Pin Support:** Persistent pinned tabs across workspace sessions.
+- **Enhanced Pin Support:** Robust restoration of pinned tabs that appear immediately fixed (no UI jumping), maintaining their state across sessions.
+- **Multi-Account Containers:** Full support for [Firefox Multi-Account Containers](https://addons.mozilla.org/en-US/firefox/addon/multi-account-containers/). Workspaces remember which container (e.g., Personal, Work, Banking) each tab belongs to and restores them in the correct context automatically.
 
 ## 3. Advanced UI/UX
 - **Dynamic Icons:** Integration with Heroicons using a CSS Mask system for `currentColor` support.
