@@ -91,6 +91,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function performRestore(workspaces) {
         try {
+            // Security: Validate Schema before processing
+            const isValid = workspaces.every(ws => {
+                const color = ws.color || "currentColor";
+                const isColorValid = color === "currentColor" || /^#([A-Fa-f0-9]{3}){1,2}$/.test(color);
+                const areTabsValid = !ws.tabs || Array.isArray(ws.tabs);
+                return isColorValid && areTabsValid;
+            });
+
+            if (!isValid) {
+                throw new Error("Invalid data format. Check colors and structure.");
+            }
+
             // Process Import: Strip window associations
             const processed = workspaces.map(ws => ({
                 ...ws,
