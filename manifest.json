@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Firefox Workspaces",
   "version": "1.0.0",
-  "description": "Workspace management inspired by Microslop Edge for Firefox.",
+  "description": "Workspace management inspired by Microsoft Edge for Firefox.",
   "permissions": [
     "tabs",
     "tabHide",
