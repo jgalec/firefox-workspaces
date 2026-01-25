@@ -154,7 +154,8 @@ const WorkspaceManager = {
 
                     let newTab = null;
                     try {
-                        const isDiscarded = !t.active;
+                        // Pinned tabs cannot be discarded in Firefox API
+                        const isDiscarded = !t.active && !t.pinned;
                         const createOptions = {
                             windowId: newWindowId,
                             pinned: t.pinned || false,
@@ -181,7 +182,7 @@ const WorkspaceManager = {
                         if (t.cookieStoreId && t.cookieStoreId !== 'firefox-default') {
                             try {
                                 console.warn(`Manager: Container ${t.cookieStoreId} invalid. Falling back.`);
-                                const isDiscardedFallback = !t.active;
+                                const isDiscardedFallback = !t.active && !t.pinned;
                                 const fallbackOptions = {
                                     windowId: newWindowId,
                                     url: url !== 'about:newtab' ? url : undefined,
