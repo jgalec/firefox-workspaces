@@ -3,21 +3,21 @@
 :root {
     --primary-blue: #0060df;
     --primary-blue-hover: #003eaa;
-    --success-green: #008740;
+    --success-green: #00d230; /* Mozilla Green */
     --bg-light: #ffffff;
-    --bg-dark: #1c1b22;
-    --text-light: #15141a;
-    --text-dark: #fbfbfe;
-    --secondary-text-light: #5b5b66;
-    --secondary-text-dark: #cfcfd8;
-    --border-light: #cfcfd8;
-    --border-dark: #5b5b66;
+    --bg-dark: #161616; /* Mozilla Black */
+    --text-light: #161616; /* Mozilla Black */
+    --text-dark: #fafafa; /* Mozilla White */
+    --secondary-text-light: #6d6d6d; /* Mozilla Gray -1 */
+    --secondary-text-dark: #b3b3b3; /* Mozilla Gray */
+    --border-light: #e8e8e8; /* Mozilla Gray +1 */
+    --border-dark: #414141; /* Mozilla Gray -2 */
     --hover-light: #f0f0f4;
     --hover-dark: #2b2a33;
-    --input-border: #8f8f9d;
+    --input-border: #b3b3b3;
     --focus-ring: rgba(0, 96, 223, 0.4);
-    --danger-color: #d70022;
-    --danger-hover: #a4000f;
+    --danger-color: #ff4f5e; /* Red 50 */
+    --danger-hover: #d70022;
 }
 
 * {
@@ -288,11 +288,13 @@ main {
 }
 
 .status-indicator {
-    font-size: 11px;
+    font-size: 10px;
     margin-right: 8px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
     display: none;
 }
 
@@ -301,14 +303,27 @@ main {
     display: inline-block;
     background-color: rgba(0, 96, 223, 0.1);
     color: var(--primary-blue);
-    content: "Active"; /* Fallback */
+}
+
+@media (prefers-color-scheme: dark) {
+    .workspace-item.active .status-indicator {
+        background-color: rgba(0, 221, 255, 0.15);
+        color: #00ddff;
+    }
 }
 
 /* Open (Other Window) */
 .workspace-item.open .status-indicator {
     display: inline-block;
-    background-color: rgba(0, 135, 64, 0.1);
+    background-color: rgba(0, 210, 48, 0.1);
     color: var(--success-green);
+}
+
+@media (prefers-color-scheme: dark) {
+    .workspace-item.open .status-indicator {
+        background-color: rgba(0, 210, 48, 0.15);
+        color: #3fe1b0;
+    }
 }
 
 .workspace-item.active .workspace-name {
@@ -505,6 +520,10 @@ main {
     color: var(--text-light);
     border: 1px solid var(--border-light);
 }
+.btn-secondary:hover {
+    background-color: var(--hover-light);
+}
+
 @media (prefers-color-scheme: dark) {
     .btn-secondary {
         color: var(--text-dark);
@@ -513,9 +532,6 @@ main {
     .btn-secondary:hover {
         background-color: var(--hover-dark);
     }
-}
-.btn-secondary:hover {
-    background-color: var(--hover-light);
 }
 
 .btn-danger {

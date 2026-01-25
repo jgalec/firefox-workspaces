@@ -8,7 +8,16 @@ const PopupLogic = {
     editingWorkspaceId: null,
     workspaceToDeleteId: null,
     saveFromCurrentWindow: false,
-    availableColors: ['#0060df', '#008740', '#d70022', '#f5a623', '#9059ff', '#0590b0', '#ff4aa2', '#ffb300'],
+    availableColors: [
+        '#ff4f5e', // Red 50
+        '#ff7139', // Orange 50
+        '#ffa436', // Yellow 50
+        '#00d230', // Mozilla Green
+        '#87e3cd', // Mozilla Aqua
+        '#0060df', // Primary Blue
+        '#9059ff', // Firefox Purple
+        '#ff97e2'  // Mozilla Pink
+    ],
 
     async refreshData() {
         const currentWin = await browser.windows.getCurrent();

@@ -3,20 +3,20 @@
 :root {
     --primary-blue: #0060df;
     --primary-blue-hover: #003eaa;
-    --success-green: #008740;
+    --success-green: #00d230; /* Mozilla Green */
     --bg-light: #ffffff;
-    --bg-dark: #1c1b22;
-    --text-light: #15141a;
-    --text-dark: #fbfbfe;
-    --secondary-text-light: #5b5b66;
-    --secondary-text-dark: #cfcfd8;
-    --border-light: #cfcfd8;
-    --border-dark: #5b5b66;
+    --bg-dark: #161616; /* Mozilla Black */
+    --text-light: #161616; /* Mozilla Black */
+    --text-dark: #fafafa; /* Mozilla White */
+    --secondary-text-light: #6d6d6d; /* Mozilla Gray -1 */
+    --secondary-text-dark: #b3b3b3; /* Mozilla Gray */
+    --border-light: #e8e8e8; /* Mozilla Gray +1 */
+    --border-dark: #414141; /* Mozilla Gray -2 */
     --hover-light: #f0f0f4;
     --hover-dark: #2b2a33;
-    --input-border: #8f8f9d;
-    --danger-color: #d70022;
-    --danger-hover: #a4000f;
+    --input-border: #b3b3b3;
+    --danger-color: #ff4f5e; /* Red 50 */
+    --danger-hover: #d70022;
 }
 
 body {
@@ -158,6 +158,8 @@ footer.popup-footer {
     font-size: 13px;
 }
 
+.btn-secondary:hover { background: var(--hover-light); }
+
 @media (prefers-color-scheme: dark) {
     .btn-secondary {
         border-color: var(--border-dark);
@@ -165,8 +167,6 @@ footer.popup-footer {
     }
     .btn-secondary:hover { background: var(--hover-dark); }
 }
-
-.btn-secondary:hover { background: var(--hover-light); }
 
 /* Overlay Modal (Same as Popup) */
 .overlay {
@@ -237,6 +237,11 @@ footer.popup-footer {
     width: 100%;
 }
 
+.btn-modal-secondary:hover {
+    background: var(--hover-light);
+}
+
 @media (prefers-color-scheme: dark) {
     .btn-modal-secondary { border-color: var(--border-dark); color: var(--text-dark); }
+    .btn-modal-secondary:hover { background: var(--hover-dark); }
 }

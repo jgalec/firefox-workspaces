@@ -21,3 +21,22 @@ Reference: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtension
 5. **Web Accessible Resources**:
    - Assets (images, fonts, HTML) bundled with the extension that need to be accessible by web page contexts.
 
+## Mozilla Protocol Color Palette (Reference)
+Source: https://protocol.mozilla.org/docs/fundamentals/color
+
+### Neutrals
+- **Mozilla Black:** `#161616` (Primary background dark / Primary text light)
+- **Mozilla White:** `#fafafa` (Primary background light / Primary text dark)
+- **Mozilla Gray +1:** `#e8e8e8` (Border light)
+- **Mozilla Gray -1:** `#6d6d6d` (Secondary text light)
+- **Mozilla Gray:** `#b3b3b3` (Secondary text dark / Input borders)
+- **Mozilla Gray -2:** `#414141` (Border dark)
+
+### Semantic Colors
+- **Success (Mozilla Green):** `#00d230`
+- **Error (Red 50):** `#ff4f5e`
+- **Warning (Orange 50):** `#ff7139`
+
+### Brand Colors
+- **Primary Blue:** `#0060df`
+- **Primary Blue Hover:** `#003eaa`
