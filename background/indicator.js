@@ -46,7 +46,14 @@ const IndicatorManager = {
             return;
         }
 
-        const color = workspace.color || "currentColor";
+        let color = workspace.color || "currentColor";
+
+        // Security: Validate color to prevent XML injection
+        // Allow "currentColor" or Hex codes (3 or 6 digits)
+        if (color !== "currentColor" && !/^#([A-Fa-f0-9]{3}){1,2}$/.test(color)) {
+            console.warn(`Indicator: Invalid color '${color}', falling back.`);
+            color = "currentColor";
+        }
         
         // Generate SVG with the workspace color
         // encodeURIComponent is safer than atob/btoa for SVG content
