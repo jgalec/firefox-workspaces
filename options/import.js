@@ -120,10 +120,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 payload: { count: processed.length }
             });
 
-            showStatus(`Success! Restored ${processed.length} workspaces. This tab will close in 5 seconds.`, 'success');
+            // Auto-close tab with countdown
+            let countdown = 5;
+            const updateMsg = () => showStatus(`Success! Restored ${processed.length} workspaces. This tab will close in ${countdown} seconds.`, 'success');
             
-            // Auto-close tab
-            setTimeout(() => window.close(), 5000);
+            updateMsg();
+            
+            const interval = setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    window.close();
+                } else {
+                    updateMsg();
+                }
+            }, 1000);
         } catch (err) {
             showStatus('Restore failed: ' + err.message, 'error');
         }
