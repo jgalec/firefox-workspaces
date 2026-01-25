@@ -152,11 +152,15 @@ const WorkspaceManager = {
                     try {
                         const createOptions = {
                             windowId: newWindowId,
-                            url: url,
                             pinned: t.pinned || false,
                             active: t.active || false,
                             index: i
                         };
+
+                        // Firefox throws "Illegal URL" if about:newtab is passed explicitly
+                        if (url && url !== 'about:newtab') {
+                            createOptions.url = url;
+                        }
 
                         if (t.cookieStoreId && t.cookieStoreId !== 'firefox-default') {
                             createOptions.cookieStoreId = t.cookieStoreId;
