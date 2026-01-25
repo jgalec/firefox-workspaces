@@ -45,6 +45,8 @@ const PopupUI = {
         // Header Default
         this.ui.currentWorkspaceName.textContent = 'This Window';
         this.ui.currentWorkspaceName.classList.add('unmanaged');
+        this.ui.currentWorkspaceName.style.backgroundColor = '';
+        this.ui.currentWorkspaceName.style.color = '';
 
         workspaces.forEach((workspace, index) => {
             const clone = this.ui.template.content.cloneNode(true);
@@ -53,17 +55,25 @@ const PopupUI = {
             const nameSpan = clone.querySelector('.workspace-name');
             const statusSpan = clone.querySelector('.status-indicator');
 
+            const wsColor = workspace.color || '#cccccc';
             nameSpan.textContent = workspace.name;
-            colorDiv.style.backgroundColor = workspace.color || '#cccccc';
+            colorDiv.style.backgroundColor = wsColor;
 
             if (workspace.windowId === activeWindowId) {
                 li.classList.add('active');
-                statusSpan.textContent = 'Active';
+                statusSpan.textContent = ''; // Removed text, background handles it
+                statusSpan.classList.add('hidden'); // Hide the pill in the list for active
+                
+                // Update Top Badge (Keep this one as it's the main identifier)
                 this.ui.currentWorkspaceName.textContent = workspace.name;
                 this.ui.currentWorkspaceName.classList.remove('unmanaged');
+                this.ui.currentWorkspaceName.style.backgroundColor = `${wsColor}22`;
+                this.ui.currentWorkspaceName.style.color = wsColor;
             } else if (workspace.windowId && openWindowIds.has(workspace.windowId)) {
                 li.classList.add('open');
                 statusSpan.textContent = 'Open';
+                statusSpan.style.backgroundColor = `${wsColor}22`;
+                statusSpan.style.color = wsColor;
             }
 
             li.addEventListener('click', () => onSwitch(workspace.id));
