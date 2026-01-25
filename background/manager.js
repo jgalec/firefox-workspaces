@@ -154,12 +154,18 @@ const WorkspaceManager = {
 
                     let newTab = null;
                     try {
+                        const isDiscarded = !t.active;
                         const createOptions = {
                             windowId: newWindowId,
                             pinned: t.pinned || false,
                             active: t.active || false,
-                            index: i
+                            index: i,
+                            discarded: isDiscarded
                         };
+
+                        if (isDiscarded) {
+                            createOptions.title = t.title || 'Loading...';
+                        }
 
                         // Firefox throws "Illegal URL" if about:newtab is passed explicitly
                         if (url && url !== 'about:newtab') {
@@ -175,13 +181,21 @@ const WorkspaceManager = {
                         if (t.cookieStoreId && t.cookieStoreId !== 'firefox-default') {
                             try {
                                 console.warn(`Manager: Container ${t.cookieStoreId} invalid. Falling back.`);
-                                newTab = await browser.tabs.create({
+                                const isDiscardedFallback = !t.active;
+                                const fallbackOptions = {
                                     windowId: newWindowId,
-                                    url: url,
+                                    url: url !== 'about:newtab' ? url : undefined,
                                     pinned: t.pinned || false,
                                     active: t.active || false,
-                                    index: i
-                                });
+                                    index: i,
+                                    discarded: isDiscardedFallback
+                                };
+
+                                if (isDiscardedFallback) {
+                                    fallbackOptions.title = t.title || 'Loading...';
+                                }
+
+                                newTab = await browser.tabs.create(fallbackOptions);
                             } catch (e2) {
                                 console.error('Manager: Failed to restore tab (fallback)', e2);
                             }
