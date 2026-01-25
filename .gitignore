@@ -10,7 +10,5 @@ dist
 coverage
 
 # Project Specific
-docs/
-.gemini/
 web-ext-artifacts/
 
