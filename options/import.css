@@ -115,7 +115,18 @@ main {
     }
 }
 
-.upload-area .icon { font-size: 40px; margin-bottom: 12px; }
+.icon-svg {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background-color: currentColor;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    flex-shrink: 0;
+}
+
+.icon-folder-plus { mask-image: url("../icons/folder-plus.svg"); -webkit-mask-image: url("../icons/folder-plus.svg"); }
 
 .status {
     padding: 12px;

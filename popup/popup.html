@@ -11,14 +11,28 @@
         <header class="popup-header">
             <h1>Workspaces</h1>
             <div class="header-actions">
-                <button id="show-create-ui-btn" class="icon-btn primary" title="New Workspace">New +</button>
+                <button id="show-create-ui-btn" class="icon-btn primary" title="New Workspace">
+                    <span class="icon-svg icon-plus" style="margin-right: 6px;"></span>
+                    New
+                </button>
                 <div class="options-container">
-                    <button id="options-menu-btn" class="icon-btn secondary" title="More options">⋮</button>
+                    <button id="options-menu-btn" class="icon-btn secondary" title="More options">
+                        <span class="icon-svg icon-menu"></span>
+                    </button>
                     <div id="options-dropdown" class="options-dropdown hidden">
-                        <button id="save-window-btn" class="dropdown-item">Save tabs to a workspace</button>
+                        <button id="save-window-btn" class="dropdown-item">
+                            <span class="icon-svg icon-save inline"></span>
+                            Save tabs to a workspace
+                        </button>
                         <div class="dropdown-separator"></div>
-                        <button id="export-workspaces-btn" class="dropdown-item">Export workspaces</button>
-                        <button id="restore-workspaces-btn" class="dropdown-item">Restore workspaces</button>
+                        <button id="export-workspaces-btn" class="dropdown-item">
+                            <span class="icon-svg icon-export inline"></span>
+                            Export workspaces
+                        </button>
+                        <button id="restore-workspaces-btn" class="dropdown-item">
+                            <span class="icon-svg icon-restore inline"></span>
+                            Restore workspaces
+                        </button>
                     </div>
                 </div>
             </div>
@@ -28,7 +42,9 @@
             <div id="active-workspace-info" class="active-info">
                 <span class="label">Active:</span>
                 <span id="current-workspace-name" class="name">Loading...</span>
-                <button id="toggle-reorder-btn" class="reorder-toggle-btn" title="Reorder Workspaces">✥</button>
+                <button id="toggle-reorder-btn" class="reorder-toggle-btn" title="Reorder Workspaces">
+                    <span class="icon-svg icon-move"></span>
+                </button>
             </div>
 
             <ul id="workspace-list" class="workspace-list">
@@ -72,12 +88,18 @@
 
     <template id="workspace-item-template">
         <li class="workspace-item">
-            <div class="drag-handle hidden">⠿</div>
+            <div class="drag-handle hidden">
+                <span class="icon-svg icon-drag"></span>
+            </div>
             <div class="workspace-color"></div>
             <span class="workspace-name"></span>
             <div class="item-actions">
-                <button class="edit-btn" title="Edit Workspace">✎</button>
-                <button class="delete-btn" title="Delete Workspace">×</button>
+                <button class="edit-btn" title="Edit Workspace">
+                    <span class="icon-svg icon-pencil"></span>
+                </button>
+                <button class="delete-btn" title="Delete Workspace">
+                    <span class="icon-svg icon-trash"></span>
+                </button>
             </div>
             <span class="status-indicator"></span>
         </li>

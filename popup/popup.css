@@ -131,7 +131,7 @@ body {
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     z-index: 100;
-    width: 200px;
+    min-width: 210px;
     padding: 4px 0;
 }
 
@@ -152,6 +152,8 @@ body {
     font-size: 13px;
     cursor: pointer;
     transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -267,17 +269,35 @@ main {
     }
 }
 
-.reorder-toggle-btn:hover, .reorder-toggle-btn.active {
+.reorder-toggle-btn:hover {
     background-color: var(--hover-light);
     color: var(--primary-blue);
 }
 
+.reorder-toggle-btn.active {
+    background-color: rgba(0, 210, 48, 0.1);
+    color: var(--success-green);
+    border-radius: 6px;
+}
+
 @media (prefers-color-scheme: dark) {
-    .reorder-toggle-btn:hover, .reorder-toggle-btn.active {
+    .reorder-toggle-btn:hover {
         background-color: var(--hover-dark);
         color: #00ddff;
     }
+    .reorder-toggle-btn.active {
+        background-color: rgba(0, 210, 48, 0.15);
+        color: #3fe1b0;
+    }
 }
+
+/* Dynamic Swap for Reorder Button */
+.reorder-toggle-btn.active .icon-move {
+    mask-image: url("../icons/check.svg");
+    -webkit-mask-image: url("../icons/check.svg");
+}
+
+/* Overlay Modal */
 
 /* Drag Handle */
 .drag-handle {
@@ -630,6 +650,51 @@ main {
     font-size: 18px;
     line-height: 1;
     margin-right: 6px;
+}
+
+/* Dynamic SVG Icon System */
+.icon-svg {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: currentColor;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    flex-shrink: 0;
+}
+
+.icon-svg.inline {
+    margin-right: 10px;
+}
+
+.icon-plus { mask-image: url("../icons/plus.svg"); -webkit-mask-image: url("../icons/plus.svg"); }
+.icon-menu { 
+    mask-image: url("../icons/menu.svg"); 
+    -webkit-mask-image: url("../icons/menu.svg");
+    width: 18px;
+    height: 18px;
+}
+.icon-drag { mask-image: url("../icons/drag.svg"); -webkit-mask-image: url("../icons/drag.svg"); }
+.icon-trash { mask-image: url("../icons/trash.svg"); -webkit-mask-image: url("../icons/trash.svg"); }
+.icon-pencil { mask-image: url("../icons/pencil.svg"); -webkit-mask-image: url("../icons/pencil.svg"); }
+.icon-move { mask-image: url("../icons/move.svg"); -webkit-mask-image: url("../icons/move.svg"); }
+.icon-export { mask-image: url("../icons/export.svg"); -webkit-mask-image: url("../icons/export.svg"); }
+.icon-restore { mask-image: url("../icons/restore.svg"); -webkit-mask-image: url("../icons/restore.svg"); }
+.icon-save { mask-image: url("../icons/save.svg"); -webkit-mask-image: url("../icons/save.svg"); }
+.icon-check { mask-image: url("../icons/check.svg"); -webkit-mask-image: url("../icons/check.svg"); }
+
+/* Dynamic Swap for Reorder Button */
+.reorder-toggle-btn.active .icon-move {
+    mask-image: url("../icons/check.svg");
+    -webkit-mask-image: url("../icons/check.svg");
+    background-color: var(--success-green);
+}
+
+@media (prefers-color-scheme: dark) {
+    .reorder-toggle-btn.active .icon-move {
+        background-color: #3fe1b0;
+    }
 }
 
 /* Overlay Modal */
