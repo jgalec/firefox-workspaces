@@ -28,6 +28,7 @@
             <div id="active-workspace-info" class="active-info">
                 <span class="label">Active:</span>
                 <span id="current-workspace-name" class="name">Loading...</span>
+                <button id="toggle-reorder-btn" class="reorder-toggle-btn" title="Reorder Workspaces">✥</button>
             </div>
 
             <ul id="workspace-list" class="workspace-list">
@@ -71,6 +72,7 @@
 
     <template id="workspace-item-template">
         <li class="workspace-item">
+            <div class="drag-handle hidden">⠿</div>
             <div class="workspace-color"></div>
             <span class="workspace-name"></span>
             <div class="item-actions">

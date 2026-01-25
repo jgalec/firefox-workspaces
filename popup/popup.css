@@ -243,11 +243,65 @@ main {
     font-weight: normal;
 }
 
+.active-info .name.unmanaged {
+    border-color: var(--border-dark);
+    color: var(--secondary-text-dark);
+}
+
+.reorder-toggle-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--secondary-text-light);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    line-height: 1;
+}
+
 @media (prefers-color-scheme: dark) {
-    .active-info .name.unmanaged {
-        border-color: var(--border-dark);
+    .reorder-toggle-btn {
         color: var(--secondary-text-dark);
     }
+}
+
+.reorder-toggle-btn:hover, .reorder-toggle-btn.active {
+    background-color: var(--hover-light);
+    color: var(--primary-blue);
+}
+
+@media (prefers-color-scheme: dark) {
+    .reorder-toggle-btn:hover, .reorder-toggle-btn.active {
+        background-color: var(--hover-dark);
+        color: #00ddff;
+    }
+}
+
+/* Drag Handle */
+.drag-handle {
+    color: var(--secondary-text-light);
+    margin-right: 12px;
+    cursor: grab;
+    font-size: 14px;
+    user-select: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    .drag-handle {
+        color: var(--secondary-text-dark);
+    }
+}
+
+/* Reordering Mode logic */
+.workspace-list.reordering .item-actions,
+.workspace-list.reordering .status-indicator {
+    display: none !important;
+}
+
+.workspace-list.reordering .drag-handle {
+    display: block !important;
 }
 
 /* Workspace List (Scrollable area) */
@@ -262,8 +316,16 @@ main {
     display: flex;
     align-items: center;
     padding: 10px 16px;
-    cursor: pointer;
+    cursor: pointer; /* Normal mode */
     transition: background-color 0.2s;
+}
+
+.workspace-list.reordering .workspace-item {
+    cursor: grab; /* Reorder mode */
+}
+
+.workspace-list.reordering .workspace-item:active {
+    cursor: grabbing;
 }
 
 .workspace-item:hover {
@@ -357,10 +419,6 @@ main {
 }
 
 /* Drag & Drop Visuals */
-.workspace-item[draggable="true"] {
-    cursor: grab;
-}
-
 .workspace-item.dragging {
     opacity: 0.5;
     background-color: var(--hover-light);

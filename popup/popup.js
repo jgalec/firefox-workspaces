@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         optionsDropdown: document.getElementById('options-dropdown'),
         saveWindowBtn: document.getElementById('save-window-btn'),
         exportWorkspacesBtn: document.getElementById('export-workspaces-btn'),
-        restoreWorkspacesBtn: document.getElementById('restore-workspaces-btn')
+        restoreWorkspacesBtn: document.getElementById('restore-workspaces-btn'),
+        toggleReorderBtn: document.getElementById('toggle-reorder-btn')
     };
 
     // Global availability
@@ -50,6 +51,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     uiRefs.confirmDeleteBtn.addEventListener('click', () => PopupLogic.confirmDelete());
     uiRefs.cancelDeleteBtn.addEventListener('click', () => PopupUI.hideDeleteModal());
+
+    uiRefs.toggleReorderBtn.addEventListener('click', () => {
+        uiRefs.workspaceList.classList.toggle('reordering');
+        uiRefs.toggleReorderBtn.classList.toggle('active');
+        PopupLogic.refreshData();
+    });
 
     uiRefs.optionsMenuBtn.addEventListener('click', (e) => {
         e.stopPropagation();
