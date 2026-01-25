@@ -1,5 +1,5 @@
 /**
- * Destructive Restore Logic (Option 3)
+ * Destructive Restore Logic (Option 3) - Firefox Style
  */
 
 if (typeof browser === "undefined") {
@@ -12,6 +12,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusArea = document.getElementById('status-area');
     const statusText = document.getElementById('status-text');
     const closeBtn = document.getElementById('close-btn');
+    
+    // Modal Elements
+    const confirmModal = document.getElementById('confirm-modal');
+    const wsCountDisplay = document.getElementById('ws-count-display');
+    const cancelRestoreBtn = document.getElementById('cancel-restore-btn');
+    const confirmRestoreBtn = document.getElementById('confirm-restore-btn');
+
+    let pendingWorkspaces = null;
 
     closeBtn.addEventListener('click', () => window.close());
 
@@ -37,6 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Modal Action Listeners
+    cancelRestoreBtn.addEventListener('click', () => {
+        confirmModal.classList.add('hidden');
+        fileInput.value = '';
+        pendingWorkspaces = null;
+    });
+
+    confirmRestoreBtn.addEventListener('click', async () => {
+        if (!pendingWorkspaces) return;
+        
+        confirmModal.classList.add('hidden');
+        await performRestore(pendingWorkspaces);
+        pendingWorkspaces = null;
+    });
+
     async function handleFile(file) {
         if (!file) return;
         
@@ -53,32 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                // DESTRUCTIVE WARNING
-                const msg = `CRITICAL WARNING:\n\nThis will PERMANENTLY DELETE your current workspaces and replace them with the ${workspacesToImport.length} workspaces from the backup.\n\nThis action cannot be undone. Do you want to continue?`;
-                
-                if (!window.confirm(msg)) {
-                    fileInput.value = '';
-                    return;
-                }
-
-                // Process Import: Strip window associations
-                const processed = workspacesToImport.map(ws => ({
-                    ...ws,
-                    windowId: null, // Always reset window linkage
-                    id: ws.id || `ws-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
-                }));
-
-                // DESTROY AND OVERWRITE
-                await browser.storage.local.set({ workspaces: processed });
-                
-                // Notify background to re-hydrate state
-                browser.runtime.sendMessage({
-                    type: 'UPDATE_WORKSPACE',
-                    workspaceId: 'import_destructive',
-                    payload: { count: processed.length }
-                });
-
-                showStatus(`Success! Restored ${processed.length} workspaces. You can now close this tab.`, 'success');
+                // Show custom modal instead of window.confirm
+                pendingWorkspaces = workspacesToImport;
+                wsCountDisplay.textContent = workspacesToImport.length;
+                confirmModal.classList.remove('hidden');
                 
             } catch (err) {
                 console.error('Import Error:', err);
@@ -86,6 +87,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         reader.readAsText(file);
+    }
+
+    async function performRestore(workspaces) {
+        try {
+            // Process Import: Strip window associations
+            const processed = workspaces.map(ws => ({
+                ...ws,
+                windowId: null, // Always reset window linkage
+                id: ws.id || `ws-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+            }));
+
+            // DESTROY AND OVERWRITE
+            await browser.storage.local.set({ workspaces: processed });
+            
+            // Notify background to re-hydrate state
+            browser.runtime.sendMessage({ 
+                type: 'UPDATE_WORKSPACE', 
+                workspaceId: 'import_destructive',
+                payload: { count: processed.length }
+            });
+
+            showStatus(`Success! Restored ${processed.length} workspaces. This tab will close in 5 seconds.`, 'success');
+            
+            // Auto-close tab
+            setTimeout(() => window.close(), 5000);
+        } catch (err) {
+            showStatus('Restore failed: ' + err.message, 'error');
+        }
     }
 
     function showStatus(msg, type) {

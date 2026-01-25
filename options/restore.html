@@ -7,25 +7,39 @@
     <link rel="stylesheet" href="import.css">
 </head>
 <body>
-    <div class="container">
-        <header>
+    <div class="container" id="main-view">
+        <header class="popup-header">
             <h1>Restore Workspaces</h1>
-            <p>Select a backup JSON file to restore your workspaces. <br> 
-            <strong class="warning">Warning: This will overwrite all current workspaces.</strong></p>
         </header>
         <main>
+            <p class="description">Select a backup JSON file to restore your workspaces. All current data will be replaced.</p>
+            
             <div class="upload-area" id="drop-zone">
                 <div class="icon">📂</div>
                 <p>Click to select file or drag & drop here</p>
                 <input type="file" id="file-input" accept=".json" hidden>
             </div>
+
             <div id="status-area" class="status hidden">
                 <p id="status-text"></p>
             </div>
         </main>
-        <footer>
-            <button id="close-btn" class="secondary-btn">Close Tab</button>
+        <footer class="popup-footer">
+            <button id="close-btn" class="btn-secondary">Close Tab</button>
         </footer>
+
+        <!-- Destructive Confirmation Modal -->
+        <div class="overlay hidden" id="confirm-modal">
+            <div class="modal-content">
+                <h3>Replace all workspaces?</h3>
+                <p>This action cannot be undone.</p>
+                <p class="warning-text">You are about to restore <span id="ws-count-display">0</span> workspaces. This will PERMANENTLY DELETE your current configuration.</p>
+                <div class="modal-actions">
+                    <button id="cancel-restore-btn" class="btn-modal-secondary">Cancel</button>
+                    <button id="confirm-restore-btn" class="btn-danger">Replace All</button>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="import.js"></script>
 </body>
