@@ -121,20 +121,15 @@ const WorkspaceManager = {
             } catch (e) { /* Stale ID */ }
         }
 
-        // Restore URLs
-        let urls = (ws.tabs && ws.tabs.length > 0) ? ws.tabs.map(t => t.url) : null;
-        if (urls) {
-            urls = urls.filter(u => u.startsWith('http') || u.startsWith('file'));
-            if (urls.length === 0) urls = null;
-        }
-
-        const createData = { focused: true };
-        if (urls) createData.url = urls;
-
         // --- Create & Lock ---
-        const newWindow = await browser.windows.create(createData);
+        // Create basic window first. We will populate it manually to support atomic Pinned state.
+        const newWindow = await browser.windows.create({ focused: true });
         const newWindowId = newWindow.id;
         
+        // Grab the initial blank tab to remove later
+        const initialTabs = await browser.tabs.query({ windowId: newWindowId });
+        const initialTabId = initialTabs.length > 0 ? initialTabs[0].id : null;
+
         StateManager.lockWindow(newWindowId);
 
         try {
@@ -142,18 +137,37 @@ const WorkspaceManager = {
             StateManager.linkWindow(newWindowId, ws.id);
             await StorageService.saveWorkspace(ws);
 
-            if (ws.tabs && urls) {
-                const newTabs = await browser.tabs.query({ windowId: newWindowId });
-                let activeTabId = null;
+            if (ws.tabs && ws.tabs.length > 0) {
+                const createdTabIds = [];
 
-                // Restore Pins & Active State
-                for (let i = 0; i < Math.min(newTabs.length, ws.tabs.length); i++) {
-                    if (ws.tabs[i].pinned) {
-                        await browser.tabs.update(newTabs[i].id, { pinned: true });
+                for (let i = 0; i < ws.tabs.length; i++) {
+                    const t = ws.tabs[i];
+                    let url = t.url;
+                    
+                    // Basic sanity check
+                    if (!url || (!url.startsWith('http') && !url.startsWith('file') && !url.startsWith('about'))) {
+                        url = 'about:newtab';
                     }
-                    if (ws.tabs[i].active) {
-                        activeTabId = newTabs[i].id;
+
+                    try {
+                        // Create tab with correct Pinned state immediately
+                        const newTab = await browser.tabs.create({
+                            windowId: newWindowId,
+                            url: url,
+                            pinned: t.pinned || false,
+                            active: t.active || false,
+                            index: i
+                        });
+                        createdTabIds.push(newTab.id);
+                    } catch (err) {
+                        console.error('Manager: Failed to restore tab', err);
+                        createdTabIds.push(null); // Keep index alignment for groups
                     }
+                }
+
+                // Remove the initial blank tab
+                if (initialTabId) {
+                    browser.tabs.remove(initialTabId).catch(() => {});
                 }
 
                 // Restore Groups
@@ -161,8 +175,8 @@ const WorkspaceManager = {
                     for (const group of ws.groups) {
                         try {
                             const tabIdsToGroup = group.tabIndices
-                                .map(idx => newTabs[idx] ? newTabs[idx].id : null)
-                                .filter(id => id !== null);
+                                .map(idx => createdTabIds[idx])
+                                .filter(id => id);
 
                             if (tabIdsToGroup.length > 0) {
                                 const newGroupId = await browser.tabs.group({
@@ -176,10 +190,6 @@ const WorkspaceManager = {
                             }
                         } catch (err) { console.error(err); }
                     }
-                }
-
-                if (activeTabId) {
-                    await browser.tabs.update(activeTabId, { active: true });
                 }
             }
         } finally {
