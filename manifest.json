@@ -9,7 +9,9 @@
     "storage",
     "activeTab",
     "tabGroups",
-    "menus"
+    "menus",
+    "contextualIdentities",
+    "cookies"
   ],
   "action": {
     "default_popup": "popup/popup.html",

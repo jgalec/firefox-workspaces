@@ -51,7 +51,8 @@ const WorkspaceManager = {
                 title: t.title,
                 pinned: t.pinned,
                 active: t.active,
-                groupId: t.groupId
+                groupId: t.groupId,
+                cookieStoreId: t.cookieStoreId
             }));
 
             // Capture Groups
@@ -91,7 +92,8 @@ const WorkspaceManager = {
                     url: t.url,
                     title: t.title,
                     pinned: t.pinned,
-                    active: t.active
+                    active: t.active,
+                    cookieStoreId: t.cookieStoreId
                 }));
                 workspaces[wsIndex].groups = groupsToStore;
                 workspaces[wsIndex].windowId = windowId;
@@ -122,11 +124,9 @@ const WorkspaceManager = {
         }
 
         // --- Create & Lock ---
-        // Create basic window first. We will populate it manually to support atomic Pinned state.
         const newWindow = await browser.windows.create({ focused: true });
         const newWindowId = newWindow.id;
         
-        // Grab the initial blank tab to remove later
         const initialTabs = await browser.tabs.query({ windowId: newWindowId });
         const initialTabId = initialTabs.length > 0 ? initialTabs[0].id : null;
 
@@ -144,28 +144,46 @@ const WorkspaceManager = {
                     const t = ws.tabs[i];
                     let url = t.url;
                     
-                    // Basic sanity check
                     if (!url || (!url.startsWith('http') && !url.startsWith('file') && !url.startsWith('about'))) {
                         url = 'about:newtab';
                     }
 
+                    let newTab = null;
                     try {
-                        // Create tab with correct Pinned state immediately
-                        const newTab = await browser.tabs.create({
+                        const createOptions = {
                             windowId: newWindowId,
                             url: url,
                             pinned: t.pinned || false,
                             active: t.active || false,
                             index: i
-                        });
-                        createdTabIds.push(newTab.id);
+                        };
+
+                        if (t.cookieStoreId && t.cookieStoreId !== 'firefox-default') {
+                            createOptions.cookieStoreId = t.cookieStoreId;
+                        }
+
+                        newTab = await browser.tabs.create(createOptions);
                     } catch (err) {
-                        console.error('Manager: Failed to restore tab', err);
-                        createdTabIds.push(null); // Keep index alignment for groups
+                        if (t.cookieStoreId && t.cookieStoreId !== 'firefox-default') {
+                            try {
+                                console.warn(`Manager: Container ${t.cookieStoreId} invalid. Falling back.`);
+                                newTab = await browser.tabs.create({
+                                    windowId: newWindowId,
+                                    url: url,
+                                    pinned: t.pinned || false,
+                                    active: t.active || false,
+                                    index: i
+                                });
+                            } catch (e2) {
+                                console.error('Manager: Failed to restore tab (fallback)', e2);
+                            }
+                        } else {
+                            console.error('Manager: Failed to restore tab', err);
+                        }
                     }
+                    createdTabIds.push(newTab ? newTab.id : null);
                 }
 
-                // Remove the initial blank tab
                 if (initialTabId) {
                     browser.tabs.remove(initialTabId).catch(() => {});
                 }
@@ -188,15 +206,13 @@ const WorkspaceManager = {
                                     collapsed: group.collapsed
                                 });
                             }
-                        } catch (err) { console.error(err); }
+                        } catch (err) { console.error('Manager: Group restore error', err); }
                     }
                 }
             }
         } finally {
-            // --- Unlock ---
             setTimeout(() => {
                 StateManager.unlockWindow(newWindowId);
-                // Final save to sync state
                 this.saveWindowState(newWindowId);
             }, 1000);
         }
@@ -211,7 +227,7 @@ const WorkspaceManager = {
             const workspaces = await StorageService.getWorkspaces();
             const ws = workspaces.find(w => w.id === workspaceId);
             if (ws) {
-                ws.windowId = null; // Mark closed
+                ws.windowId = null; 
                 await StorageService.saveWorkspace(ws);
             }
             StateManager.unlinkWindow(windowId);
@@ -227,12 +243,8 @@ const WorkspaceManager = {
         if (!currentWin) return;
 
         console.log(`Manager: Capturing window ${currentWin.id} for workspace ${workspaceId}`);
-
-        // Link immediately in memory
         StateManager.linkWindow(currentWin.id, workspaceId);
         
-        // Force a direct save logic here to ensure initial population
-        // (Reusing saveWindowState might fail if async timing is off with storage)
         try {
             const tabs = await browser.tabs.query({ windowId: currentWin.id });
             const tabData = tabs.map(t => ({
@@ -240,7 +252,8 @@ const WorkspaceManager = {
                 title: t.title,
                 pinned: t.pinned,
                 active: t.active,
-                groupId: t.groupId
+                groupId: t.groupId,
+                cookieStoreId: t.cookieStoreId
             }));
 
             const workspaces = await StorageService.getWorkspaces();
@@ -251,7 +264,8 @@ const WorkspaceManager = {
                     url: t.url, 
                     title: t.title, 
                     pinned: t.pinned,
-                    active: t.active 
+                    active: t.active,
+                    cookieStoreId: t.cookieStoreId
                 }));
                 workspaces[wsIndex].windowId = currentWin.id;
                 
