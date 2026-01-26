@@ -2,6 +2,17 @@
 
 A lightweight workspace manager for Firefox, inspired by the workspaces feature of Microslop Edge.
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="assets/demo-1.png" alt="Workspace List" width="45%">
+  <img src="assets/demo-2.png" alt="Workspace Creation" width="45%">
+</p>
+<p align="center">
+  <img src="assets/demo-3.png" alt="Reordering" width="45%">
+  <img src="assets/demo-4.png" alt="Edit Mode" width="45%">
+</p>
+
 ## 💡 Why this exists
 
 This extension was made because even though I started to hate the AI slop built into Edge, this stupid browser has several features I like, and one I love is the way it handles workspaces in separate windows **keeping your project tabs organized and remembering exactly where you left off**, and I wanted to bring it somehow to Firefox so I can finally make the switch for good.
@@ -24,17 +35,6 @@ Yes, before you ask, this extension was made with Gemini's help. As a junior dev
 
 And the best part:
 - **Privacy First:** Works fully offline with no external tracking. Your data stays in your browser (future sync with Mozilla accounts is being considered).
-
-## 📸 Screenshots
-
-<p align="center">
-  <img src="assets/demo-1.png" alt="Workspace List" width="45%">
-  <img src="assets/demo-2.png" alt="Workspace Creation" width="45%">
-</p>
-<p align="center">
-  <img src="assets/demo-3.png" alt="Reordering" width="45%">
-  <img src="assets/demo-4.png" alt="Edit Mode" width="45%">
-</p>
 
 ## 🚀 Installation (Development)
 
