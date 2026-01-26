@@ -13,13 +13,13 @@ A lightweight workspace manager for Firefox, inspired by the workspaces feature 
   <img src="assets/demo-4.png" alt="Edit Mode" width="45%">
 </p>
 
-## 💡 Why this exists
-
-This extension was made because even though I started to hate the AI slop built into Edge, this stupid browser has several features I like, and one I love is the way it handles workspaces in separate windows **keeping your project tabs organized and remembering exactly where you left off**, and I wanted to bring it somehow to Firefox so I can finally make the switch for good.
-
 ## 🛡️ Disclaimer
 
 Yes, before you ask, this extension was made with Gemini's help. As a junior dev, I currently don't have the skills to create something at the same level as a professional, but I tried to use what I know with some help.
+
+## 💡 Why this exists
+
+This extension was made because even though I started to hate the AI slop built into Edge, this stupid browser has several features I like, and one I love is the way it handles workspaces in separate windows **keeping your project tabs organized and remembering exactly where you left off**, and I wanted to bring it somehow to Firefox so I can finally make the switch for good.
 
 ## ✨ Features
 
