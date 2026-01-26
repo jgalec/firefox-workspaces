@@ -25,6 +25,17 @@ Yes, before you ask, this extension was made with Gemini's help. As a junior dev
 And the best part:
 - **Privacy First:** Works fully offline with no external tracking. Your data stays in your browser (future sync with Mozilla accounts is being considered).
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="assets/demo-1.png" alt="Workspace List" width="45%">
+  <img src="assets/demo-2.png" alt="Workspace Creation" width="45%">
+</p>
+<p align="center">
+  <img src="assets/demo-3.png" alt="Reordering" width="45%">
+  <img src="assets/demo-4.png" alt="Edit Mode" width="45%">
+</p>
+
 ## 🚀 Installation (Development)
 
 1. Clone this repository: `git clone https://github.com/jgalec/firefox-workspaces.git`
