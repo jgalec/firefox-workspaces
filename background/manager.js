@@ -16,6 +16,27 @@ const WorkspaceManager = {
             .join('||');
     },
 
+    normalizeSingleActiveTab(tabs) {
+        if (!Array.isArray(tabs) || tabs.length === 0) return [];
+
+        const normalizedTabs = tabs.map(tab => ({ ...tab, active: !!tab.active }));
+        const activeIndices = normalizedTabs
+            .map((tab, index) => (tab.active ? index : -1))
+            .filter(index => index !== -1);
+
+        if (activeIndices.length === 1) return normalizedTabs;
+
+        const fallbackIndex = activeIndices.length > 1
+            ? activeIndices[0]
+            : normalizedTabs.findIndex(tab => !tab.pinned);
+
+        const finalActiveIndex = fallbackIndex >= 0 ? fallbackIndex : 0;
+        return normalizedTabs.map((tab, index) => ({
+            ...tab,
+            active: index === finalActiveIndex
+        }));
+    },
+
     normalizeGroupColor(color) {
         const allowedColors = new Set(['grey', 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange']);
         return typeof color === 'string' && allowedColors.has(color) ? color : 'blue';
@@ -129,14 +150,14 @@ const WorkspaceManager = {
             const tabs = await browser.tabs.query({ windowId });
             if (tabs.length === 0) return;
 
-            const tabData = tabs.map(t => ({
+            const tabData = this.normalizeSingleActiveTab(tabs.map(t => ({
                 url: t.url,
                 title: t.title,
                 pinned: t.pinned,
                 active: t.active,
                 groupId: t.groupId,
                 cookieStoreId: t.cookieStoreId
-            }));
+            })));
 
             // Capture Groups
             let groupsData = [];
@@ -222,10 +243,11 @@ const WorkspaceManager = {
             EventBus.emit(Events.WORKSPACE_OPENED, { windowId: newWindowId, workspace: ws });
 
             if (ws.tabs && ws.tabs.length > 0) {
+                const tabsToRestore = this.normalizeSingleActiveTab(ws.tabs);
                 const createdTabIds = [];
 
-                for (let i = 0; i < ws.tabs.length; i++) {
-                    const t = ws.tabs[i];
+                for (let i = 0; i < tabsToRestore.length; i++) {
+                    const t = tabsToRestore[i];
                     let url = t.url;
                     
                     if (!url || (!url.startsWith('http') && !url.startsWith('file') && !url.startsWith('about'))) {
@@ -359,14 +381,14 @@ const WorkspaceManager = {
         
         try {
             const tabs = await browser.tabs.query({ windowId: currentWin.id });
-            const tabData = tabs.map(t => ({
+            const tabData = this.normalizeSingleActiveTab(tabs.map(t => ({
                 url: t.url,
                 title: t.title,
                 pinned: t.pinned,
                 active: t.active,
                 groupId: t.groupId,
                 cookieStoreId: t.cookieStoreId
-            }));
+            })));
 
             await StorageService.mutateWorkspaces((workspaces) => {
                 const wsIndex = workspaces.findIndex(w => w.id === workspaceId);
