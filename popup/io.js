@@ -9,7 +9,6 @@ const PopupIO = {
      */
     async exportData() {
         try {
-            console.log('IO: Starting Export (DOM method)...');
             const data = await browser.storage.local.get('workspaces');
             const json = JSON.stringify(data, null, 2);
             

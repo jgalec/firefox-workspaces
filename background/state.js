@@ -36,7 +36,7 @@ const StateManager = {
      */
     lockWindow(windowId) {
         this.restoringWindows.add(windowId);
-        console.log(`State: Locked window ${windowId}`);
+        Logger.debug(`State: Locked window ${windowId}`);
     },
 
     /**
@@ -44,7 +44,7 @@ const StateManager = {
      */
     unlockWindow(windowId) {
         this.restoringWindows.delete(windowId);
-        console.log(`State: Unlocked window ${windowId}`);
+        Logger.debug(`State: Unlocked window ${windowId}`);
     },
 
     /**

@@ -63,7 +63,7 @@ const MenusManager = {
      * Moves a tab to the target workspace window.
      */
     async handleMove(tabId, workspaceId) {
-        console.log(`Menus: Moving tab ${tabId} to workspace ${workspaceId}`);
+        Logger.debug(`Menus: Moving tab ${tabId} to workspace ${workspaceId}`);
         
         // 1. Ensure target window is open
         await WorkspaceManager.openWorkspace(workspaceId);

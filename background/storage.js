@@ -45,7 +45,7 @@ const StorageService = {
             }
 
             await browser.storage.local.set({ [this.KEYS.WORKSPACES]: workspaces });
-            console.log(`StorageService: Workspace '${workspace.name}' saved.`);
+            Logger.debug(`StorageService: Workspace '${workspace.name}' saved.`);
         } catch (error) {
             console.error('StorageService: Error saving workspace', error);
         }
@@ -61,7 +61,7 @@ const StorageService = {
             const workspaces = await this.getWorkspaces();
             const filtered = workspaces.filter(w => w.id !== workspaceId);
             await browser.storage.local.set({ [this.KEYS.WORKSPACES]: filtered });
-            console.log(`StorageService: Workspace ${workspaceId} deleted.`);
+            Logger.debug(`StorageService: Workspace ${workspaceId} deleted.`);
         } catch (error) {
             console.error('StorageService: Error deleting workspace', error);
         }
@@ -89,7 +89,7 @@ const StorageService = {
     async setActiveWorkspaceId(workspaceId) {
         try {
             await browser.storage.local.set({ [this.KEYS.ACTIVE_WORKSPACE_ID]: workspaceId });
-            console.log(`StorageService: Active workspace set to ${workspaceId}`);
+            Logger.debug(`StorageService: Active workspace set to ${workspaceId}`);
         } catch (error) {
             console.error('StorageService: Error setting active ID', error);
         }
@@ -100,6 +100,6 @@ const StorageService = {
      */
     async clearAll() {
         await browser.storage.local.clear();
-        console.log('StorageService: All data cleared.');
+        Logger.debug('StorageService: All data cleared.');
     }
 };

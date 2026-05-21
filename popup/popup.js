@@ -4,8 +4,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Popup: DOM Loaded');
-
     // 1. Gather References
     const uiRefs = {
         mainView: document.getElementById('main-view'),

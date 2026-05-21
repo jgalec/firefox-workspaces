@@ -3,7 +3,7 @@
  * Coordinators events and delegates logic to WorkspaceManager.
  */
 
-console.log('Background: Event Coordinator started.');
+Logger.debug('Background: Event Coordinator started.');
 
 function generateWorkspaceId() {
     if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
@@ -38,7 +38,7 @@ browser.runtime.onMessage.addListener(async (message) => {
         return { success: true };
     }
     if (message.type === 'DELETE_WORKSPACE') {
-        console.log(`Background: Deleting workspace ${message.workspaceId}`);
+        Logger.debug(`Background: Deleting workspace ${message.workspaceId}`);
         const workspaces = await StorageService.getWorkspaces();
         const ws = workspaces.find(w => w.id === message.workspaceId);
         
@@ -54,11 +54,11 @@ browser.runtime.onMessage.addListener(async (message) => {
     }
     if (message.type === 'UPDATE_WORKSPACE') {
         if (message.workspaceId === 'import_destructive') {
-            console.log('Background: Destructive import detected. Re-hydrating...');
+            Logger.debug('Background: Destructive import detected. Re-hydrating...');
             await WorkspaceManager.hydrateMap();
             await MenusManager.updateSubmenus();
         } else {
-            console.log(`Background: Updating workspace ${message.workspaceId}`);
+            Logger.debug(`Background: Updating workspace ${message.workspaceId}`);
             await WorkspaceManager.updateWorkspace(message.workspaceId, message.payload);
             await MenusManager.updateSubmenus();
         }

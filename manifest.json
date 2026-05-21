@@ -20,6 +20,7 @@
   },
   "background": {
     "scripts": [
+      "background/logger.js",
       "background/events.js",
       "background/storage.js",
       "background/state.js",

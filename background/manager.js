@@ -25,7 +25,7 @@ const WorkspaceManager = {
                 await StorageService.saveWorkspace(ws);
             }
         }
-        console.log('Manager: Hydrated window map', StateManager.windowToWorkspaceMap);
+        Logger.debug('Manager: Hydrated window map', StateManager.windowToWorkspaceMap);
     },
 
     /**
@@ -34,7 +34,7 @@ const WorkspaceManager = {
     async saveWindowState(windowId) {
         // 1. Check Locks
         if (StateManager.isLocked(windowId)) {
-            console.log(`Manager: Skipping save for window ${windowId} (Locked)`);
+            Logger.debug(`Manager: Skipping save for window ${windowId} (Locked)`);
             return;
         }
 
@@ -254,7 +254,7 @@ const WorkspaceManager = {
                 await StorageService.saveWorkspace(ws);
             }
             StateManager.unlinkWindow(windowId);
-            console.log(`Manager: Window ${windowId} closed. Workspace ${workspaceId} marked inactive.`);
+            Logger.debug(`Manager: Window ${windowId} closed. Workspace ${workspaceId} marked inactive.`);
         }
     },
 
@@ -265,7 +265,7 @@ const WorkspaceManager = {
         const currentWin = await browser.windows.getCurrent();
         if (!currentWin) return;
 
-        console.log(`Manager: Capturing window ${currentWin.id} for workspace ${workspaceId}`);
+        Logger.debug(`Manager: Capturing window ${currentWin.id} for workspace ${workspaceId}`);
         // Link immediately in memory
         StateManager.linkWindow(currentWin.id, workspaceId);
 
@@ -298,7 +298,7 @@ const WorkspaceManager = {
                 workspaces[wsIndex].windowId = currentWin.id;
                 
                 await browser.storage.local.set({ workspaces: workspaces });
-                console.log(`Manager: Captured ${tabData.length} tabs.`);
+                Logger.debug(`Manager: Captured ${tabData.length} tabs.`);
             }
         } catch (e) {
             console.error('Manager: Failed to capture window state', e);
