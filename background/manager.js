@@ -4,6 +4,18 @@
  */
 
 const WorkspaceManager = {
+    normalizeUrl(url) {
+        if (!url) return 'about:newtab';
+        if (url === 'about:blank') return 'about:newtab';
+        return url;
+    },
+
+    buildTabSignature(tabs) {
+        return tabs
+            .map(t => `${this.normalizeUrl(t.url)}|${t.pinned ? 1 : 0}|${t.cookieStoreId || 'firefox-default'}`)
+            .join('||');
+    },
+
     /**
      * Re-builds the memory map from storage on startup.
      */
@@ -14,9 +26,12 @@ const WorkspaceManager = {
         const allWindows = await browser.windows.getAll();
         const openWindowIds = new Set(allWindows.map(w => w.id));
 
+        const linkedWorkspaceIds = new Set();
+
         for (const ws of workspaces) {
             if (ws.windowId && openWindowIds.has(ws.windowId)) {
                 StateManager.linkWindow(ws.windowId, ws.id);
+                linkedWorkspaceIds.add(ws.id);
                 // Restore Badge via Event
                 EventBus.emit(Events.WINDOW_LINKED, { windowId: ws.windowId, workspaceId: ws.id });
             } else if (ws.windowId) {
@@ -25,6 +40,39 @@ const WorkspaceManager = {
                 await StorageService.saveWorkspace(ws);
             }
         }
+
+        // Re-link restored session windows when windowId changed between sessions.
+        const workspaceBySignature = new Map();
+        for (const ws of workspaces) {
+            if (linkedWorkspaceIds.has(ws.id)) continue;
+            if (!ws.tabs || ws.tabs.length === 0) continue;
+
+            const signature = this.buildTabSignature(ws.tabs);
+            if (signature && !workspaceBySignature.has(signature)) {
+                workspaceBySignature.set(signature, ws);
+            }
+        }
+
+        for (const win of allWindows) {
+            const hasLink = !!StateManager.getWorkspaceId(win.id);
+            if (hasLink) continue;
+
+            const tabs = await browser.tabs.query({ windowId: win.id });
+            if (!tabs || tabs.length === 0) continue;
+
+            const signature = this.buildTabSignature(tabs);
+            const matchedWorkspace = workspaceBySignature.get(signature);
+            if (!matchedWorkspace) continue;
+
+            matchedWorkspace.windowId = win.id;
+            await StorageService.saveWorkspace(matchedWorkspace);
+            StateManager.linkWindow(win.id, matchedWorkspace.id);
+            linkedWorkspaceIds.add(matchedWorkspace.id);
+            workspaceBySignature.delete(signature);
+            EventBus.emit(Events.WINDOW_LINKED, { windowId: win.id, workspaceId: matchedWorkspace.id });
+            Logger.debug(`Manager: Re-linked restored window ${win.id} to workspace ${matchedWorkspace.id}`);
+        }
+
         Logger.debug('Manager: Hydrated window map', StateManager.windowToWorkspaceMap);
     },
 
