@@ -4,6 +4,8 @@
  */
 
 const IndicatorManager = {
+    initialized: false,
+
     // Template for the 'square-stack' icon
     // We use a placeholder for the stroke color
     ICON_TEMPLATE: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="2 2 20 20" stroke-width="2" stroke="{COLOR}">
@@ -11,6 +13,9 @@ const IndicatorManager = {
 </svg>`,
 
     init() {
+        if (this.initialized) return;
+        this.initialized = true;
+
         // Subscribe to events
         EventBus.on(Events.WORKSPACE_OPENED, ({ windowId, workspace }) => {
             this.updateWindowIcon(windowId, workspace);

@@ -109,18 +109,27 @@ browser.windows.onRemoved.addListener((windowId) => {
 });
 
 // --- Initialization ---
+let bootstrapPromise = null;
+
+function initializeExtension() {
+    if (bootstrapPromise) return bootstrapPromise;
+
+    bootstrapPromise = (async () => {
+        await WorkspaceManager.hydrateMap();
+        await MenusManager.init();
+        IndicatorManager.init();
+    })();
+
+    return bootstrapPromise;
+}
+
 browser.runtime.onStartup.addListener(() => {
-    WorkspaceManager.hydrateMap();
-    MenusManager.init();
-    IndicatorManager.init();
+    initializeExtension();
 });
+
 browser.runtime.onInstalled.addListener(() => {
-    WorkspaceManager.hydrateMap();
-    MenusManager.init();
-    IndicatorManager.init();
+    initializeExtension();
 });
 
 // Initial run
-WorkspaceManager.hydrateMap();
-MenusManager.init();
-IndicatorManager.init();
+initializeExtension();
