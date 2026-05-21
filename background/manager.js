@@ -134,10 +134,10 @@ const WorkspaceManager = {
                 };
             });
 
-            const workspaces = await StorageService.getWorkspaces();
-            const wsIndex = workspaces.findIndex(w => w.id === workspaceId);
+            await StorageService.mutateWorkspaces((workspaces) => {
+                const wsIndex = workspaces.findIndex(w => w.id === workspaceId);
+                if (wsIndex === -1) return workspaces;
 
-            if (wsIndex > -1) {
                 workspaces[wsIndex].tabs = tabData.map(t => ({
                     url: t.url,
                     title: t.title,
@@ -147,9 +147,8 @@ const WorkspaceManager = {
                 }));
                 workspaces[wsIndex].groups = groupsToStore;
                 workspaces[wsIndex].windowId = windowId;
-
-                await browser.storage.local.set({ workspaces: workspaces });
-            }
+                return workspaces;
+            });
         } catch (error) {
             console.warn('Manager: Error saving window state', error);
         }
@@ -332,22 +331,21 @@ const WorkspaceManager = {
                 cookieStoreId: t.cookieStoreId
             }));
 
-            const workspaces = await StorageService.getWorkspaces();
-            const wsIndex = workspaces.findIndex(w => w.id === workspaceId);
-            
-            if (wsIndex > -1) {
-                workspaces[wsIndex].tabs = tabData.map(t => ({ 
-                    url: t.url, 
-                    title: t.title, 
+            await StorageService.mutateWorkspaces((workspaces) => {
+                const wsIndex = workspaces.findIndex(w => w.id === workspaceId);
+                if (wsIndex === -1) return workspaces;
+
+                workspaces[wsIndex].tabs = tabData.map(t => ({
+                    url: t.url,
+                    title: t.title,
                     pinned: t.pinned,
                     active: t.active,
                     cookieStoreId: t.cookieStoreId
                 }));
                 workspaces[wsIndex].windowId = currentWin.id;
-                
-                await browser.storage.local.set({ workspaces: workspaces });
                 Logger.debug(`Manager: Captured ${tabData.length} tabs.`);
-            }
+                return workspaces;
+            });
         } catch (e) {
             console.error('Manager: Failed to capture window state', e);
         }

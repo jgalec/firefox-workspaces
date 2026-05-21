@@ -4,6 +4,8 @@
  */
 
 const StorageService = {
+    writeQueue: Promise.resolve(),
+
     /**
      * Keys used in local storage
      */
@@ -26,6 +28,26 @@ const StorageService = {
         }
     },
 
+    enqueueWrite(operation) {
+        this.writeQueue = this.writeQueue
+            .then(() => operation())
+            .catch(error => {
+                console.error('StorageService: Write queue operation failed', error);
+            });
+
+        return this.writeQueue;
+    },
+
+    async mutateWorkspaces(mutator) {
+        return this.enqueueWrite(async () => {
+            const result = await browser.storage.local.get(this.KEYS.WORKSPACES);
+            const workspaces = result[this.KEYS.WORKSPACES] || [];
+            const nextWorkspaces = await mutator(workspaces);
+            await browser.storage.local.set({ [this.KEYS.WORKSPACES]: nextWorkspaces });
+            return nextWorkspaces;
+        });
+    },
+
     /**
      * Saves a workspace (create or update).
      * @param {Object} workspace - The workspace object to save
@@ -33,18 +55,17 @@ const StorageService = {
      */
     async saveWorkspace(workspace) {
         try {
-            const workspaces = await this.getWorkspaces();
-            const index = workspaces.findIndex(w => w.id === workspace.id);
+            await this.mutateWorkspaces((workspaces) => {
+                const index = workspaces.findIndex(w => w.id === workspace.id);
 
-            if (index > -1) {
-                // Update existing
-                workspaces[index] = workspace;
-            } else {
-                // Create new
-                workspaces.push(workspace);
-            }
+                if (index > -1) {
+                    workspaces[index] = workspace;
+                } else {
+                    workspaces.push(workspace);
+                }
 
-            await browser.storage.local.set({ [this.KEYS.WORKSPACES]: workspaces });
+                return workspaces;
+            });
             Logger.debug(`StorageService: Workspace '${workspace.name}' saved.`);
         } catch (error) {
             console.error('StorageService: Error saving workspace', error);
@@ -58,9 +79,9 @@ const StorageService = {
      */
     async deleteWorkspace(workspaceId) {
         try {
-            const workspaces = await this.getWorkspaces();
-            const filtered = workspaces.filter(w => w.id !== workspaceId);
-            await browser.storage.local.set({ [this.KEYS.WORKSPACES]: filtered });
+            await this.mutateWorkspaces((workspaces) => {
+                return workspaces.filter(w => w.id !== workspaceId);
+            });
             Logger.debug(`StorageService: Workspace ${workspaceId} deleted.`);
         } catch (error) {
             console.error('StorageService: Error deleting workspace', error);
