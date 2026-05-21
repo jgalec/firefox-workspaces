@@ -14,6 +14,92 @@ function generateWorkspaceId() {
     return `ws-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
+function isValidHexColor(color) {
+    return color === 'currentColor' || /^#([A-Fa-f0-9]{3}){1,2}$/.test(color);
+}
+
+function sanitizeWorkspaceName(name) {
+    if (typeof name !== 'string') return 'Untitled Workspace';
+    const trimmed = name.trim();
+    return trimmed.length > 0 ? trimmed.slice(0, 120) : 'Untitled Workspace';
+}
+
+function normalizeWorkspaceColor(color) {
+    return isValidHexColor(color) ? color : '#0060df';
+}
+
+function normalizeWorkspaceTab(tab) {
+    if (!tab || typeof tab !== 'object') return null;
+
+    const rawUrl = typeof tab.url === 'string' ? tab.url.trim() : '';
+    const isAllowedUrl = rawUrl.startsWith('http') || rawUrl.startsWith('file') || rawUrl.startsWith('about');
+    const url = isAllowedUrl ? rawUrl : 'about:newtab';
+    const title = typeof tab.title === 'string' ? tab.title.slice(0, 500) : '';
+    const pinned = typeof tab.pinned === 'boolean' ? tab.pinned : false;
+    const active = typeof tab.active === 'boolean' ? tab.active : false;
+    const cookieStoreId = typeof tab.cookieStoreId === 'string' ? tab.cookieStoreId : undefined;
+
+    return {
+        url,
+        title,
+        pinned,
+        active,
+        cookieStoreId
+    };
+}
+
+function normalizeWorkspaceGroup(group, tabCount) {
+    if (!group || typeof group !== 'object') return null;
+
+    const title = typeof group.title === 'string' ? group.title.slice(0, 120) : '';
+    const allowedColors = new Set(['grey', 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange']);
+    const color = typeof group.color === 'string' && allowedColors.has(group.color) ? group.color : 'blue';
+    const collapsed = typeof group.collapsed === 'boolean' ? group.collapsed : false;
+    const rawIndices = Array.isArray(group.tabIndices) ? group.tabIndices : [];
+
+    const tabIndices = [...new Set(
+        rawIndices.filter(index => Number.isInteger(index) && index >= 0 && index < tabCount)
+    )].sort((a, b) => a - b);
+
+    return {
+        title,
+        color,
+        collapsed,
+        tabIndices
+    };
+}
+
+function normalizeWorkspace(workspace) {
+    if (!workspace || typeof workspace !== 'object') return null;
+
+    const tabsInput = Array.isArray(workspace.tabs) ? workspace.tabs : [];
+    const tabs = tabsInput
+        .map(normalizeWorkspaceTab)
+        .filter(Boolean);
+
+    const activeIndex = tabs.findIndex(tab => tab.active);
+    if (activeIndex >= 0) {
+        tabs.forEach((tab, index) => {
+            tab.active = index === activeIndex;
+        });
+    }
+
+    const groupsInput = Array.isArray(workspace.groups) ? workspace.groups : [];
+    const groups = groupsInput
+        .map(group => normalizeWorkspaceGroup(group, tabs.length))
+        .filter(Boolean);
+
+    return {
+        id: typeof workspace.id === 'string' && workspace.id.trim() ? workspace.id : generateWorkspaceId(),
+        name: sanitizeWorkspaceName(workspace.name),
+        color: normalizeWorkspaceColor(workspace.color || 'currentColor'),
+        tabs,
+        groups,
+        windowId: null,
+        lastActive: typeof workspace.lastActive === 'number' ? workspace.lastActive : Date.now()
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
@@ -99,24 +185,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function performRestore(workspaces) {
         try {
-            // Security: Validate Schema before processing
-            const isValid = workspaces.every(ws => {
-                const color = ws.color || "currentColor";
-                const isColorValid = color === "currentColor" || /^#([A-Fa-f0-9]{3}){1,2}$/.test(color);
-                const areTabsValid = !ws.tabs || Array.isArray(ws.tabs);
-                return isColorValid && areTabsValid;
-            });
+            const processed = workspaces
+                .map(normalizeWorkspace)
+                .filter(Boolean);
 
-            if (!isValid) {
-                throw new Error("Invalid data format. Check colors and structure.");
+            if (processed.length === 0) {
+                throw new Error('Invalid data format. No valid workspaces found.');
             }
-
-            // Process Import: Strip window associations
-            const processed = workspaces.map(ws => ({
-                ...ws,
-                windowId: null, // Always reset window linkage
-                id: ws.id || generateWorkspaceId()
-            }));
 
             // DESTROY AND OVERWRITE
             await browser.storage.local.set({ workspaces: processed });
