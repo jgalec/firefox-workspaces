@@ -29,6 +29,16 @@
 - Verify lazy restoration behavior (discarded tabs) and lock-protected restore flow.
 - Verify toolbar indicator color updates per active workspace/window mapping.
 
+## Firefox DevTools MCP (Testing)
+- Use local MCP server `firefox-devtools-mcp` for browser E2E checks when available.
+- Preferred launch command: `cmd /c npx -y firefox-devtools-mcp@latest`.
+- Firefox binary may need to be explicit (example): `C:\Program Files\Firefox Developer Edition\firefox.exe`.
+- Keep automation isolated: prefer a dedicated Firefox profile; avoid personal browsing sessions.
+- Default test scope: popup create/rename/reorder/switch flows, restore flow, and indicator updates.
+- Use MCP tools for evidence collection: `list_console_messages`, `list_network_requests`, `take_snapshot`, `screenshot_page`.
+- If UID actions fail after navigation, take a fresh snapshot before interacting again.
+- If MCP times out or discovery fails, use `cmd /c` wrapping (already reflected in `opencode.json`).
+
 ## Repository Map
 - `manifest.json`: extension metadata, permissions, and entry points.
 - `background/background.js`: background bootstrap and runtime wiring.
