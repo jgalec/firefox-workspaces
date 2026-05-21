@@ -6,97 +6,146 @@ if (typeof browser === "undefined") {
     var browser = chrome;
 }
 
-function generateWorkspaceId() {
-    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
-        return `ws-${globalThis.crypto.randomUUID()}`;
-    }
-
-    return `ws-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-}
-
 function isValidHexColor(color) {
     return color === 'currentColor' || /^#([A-Fa-f0-9]{3}){1,2}$/.test(color);
 }
 
-function sanitizeWorkspaceName(name) {
-    if (typeof name !== 'string') return 'Untitled Workspace';
-    const trimmed = name.trim();
-    return trimmed.length > 0 ? trimmed.slice(0, 120) : 'Untitled Workspace';
+const ALLOWED_GROUP_COLORS = new Set(['grey', 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange']);
+
+function isAllowedTabUrl(url) {
+    return typeof url === 'string' && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('file://') || url.startsWith('about:'));
 }
 
-function normalizeWorkspaceColor(color) {
-    return isValidHexColor(color) ? color : '#0060df';
-}
-
-function normalizeWorkspaceTab(tab) {
-    if (!tab || typeof tab !== 'object') return null;
-
-    const rawUrl = typeof tab.url === 'string' ? tab.url.trim() : '';
-    const isAllowedUrl = rawUrl.startsWith('http') || rawUrl.startsWith('file') || rawUrl.startsWith('about');
-    const url = isAllowedUrl ? rawUrl : 'about:newtab';
-    const title = typeof tab.title === 'string' ? tab.title.slice(0, 500) : '';
-    const pinned = typeof tab.pinned === 'boolean' ? tab.pinned : false;
-    const active = typeof tab.active === 'boolean' ? tab.active : false;
-    const cookieStoreId = typeof tab.cookieStoreId === 'string' ? tab.cookieStoreId : undefined;
-
-    return {
-        url,
-        title,
-        pinned,
-        active,
-        cookieStoreId
-    };
-}
-
-function normalizeWorkspaceGroup(group, tabCount) {
-    if (!group || typeof group !== 'object') return null;
-
-    const title = typeof group.title === 'string' ? group.title.slice(0, 120) : '';
-    const allowedColors = new Set(['grey', 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange']);
-    const color = typeof group.color === 'string' && allowedColors.has(group.color) ? group.color : 'blue';
-    const collapsed = typeof group.collapsed === 'boolean' ? group.collapsed : false;
-    const rawIndices = Array.isArray(group.tabIndices) ? group.tabIndices : [];
-
-    const tabIndices = [...new Set(
-        rawIndices.filter(index => Number.isInteger(index) && index >= 0 && index < tabCount)
-    )].sort((a, b) => a - b);
-
-    return {
-        title,
-        color,
-        collapsed,
-        tabIndices
-    };
-}
-
-function normalizeWorkspace(workspace) {
-    if (!workspace || typeof workspace !== 'object') return null;
-
-    const tabsInput = Array.isArray(workspace.tabs) ? workspace.tabs : [];
-    const tabs = tabsInput
-        .map(normalizeWorkspaceTab)
-        .filter(Boolean);
-
-    const activeIndex = tabs.findIndex(tab => tab.active);
-    if (activeIndex >= 0) {
-        tabs.forEach((tab, index) => {
-            tab.active = index === activeIndex;
-        });
+function validateAndNormalizeBackup(workspaces) {
+    if (!Array.isArray(workspaces) || workspaces.length === 0) {
+        throw new Error('Invalid backup: workspaces must be a non-empty array.');
     }
 
-    const groupsInput = Array.isArray(workspace.groups) ? workspace.groups : [];
-    const groups = groupsInput
-        .map(group => normalizeWorkspaceGroup(group, tabs.length))
-        .filter(Boolean);
+    return workspaces.map((workspace, wsIndex) => validateAndNormalizeWorkspace(workspace, wsIndex));
+}
+
+function toUserFriendlyImportError(error) {
+    const technicalMessage = typeof error?.message === 'string' ? error.message : 'Unknown validation error.';
+    if (!technicalMessage.startsWith('Invalid backup:')) {
+        return `Restore failed: ${technicalMessage}`;
+    }
+
+    return `Invalid backup file. Please review the backup format and try again.\n\nDetails: ${technicalMessage}`;
+}
+
+function validateAndNormalizeWorkspace(workspace, wsIndex) {
+    if (!workspace || typeof workspace !== 'object' || Array.isArray(workspace)) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}] must be an object.`);
+    }
+
+    if (typeof workspace.id !== 'string' || workspace.id.trim().length === 0) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].id must be a non-empty string.`);
+    }
+
+    if (typeof workspace.name !== 'string' || workspace.name.trim().length === 0) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].name must be a non-empty string.`);
+    }
+
+    if (!isValidHexColor(workspace.color)) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].color must be a hex value or currentColor.`);
+    }
+
+    if (!Array.isArray(workspace.tabs) || workspace.tabs.length === 0) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].tabs must be a non-empty array.`);
+    }
+
+    const tabs = workspace.tabs.map((tab, tabIndex) => validateAndNormalizeTab(tab, wsIndex, tabIndex));
+    const activeCount = tabs.filter(tab => tab.active).length;
+    if (activeCount !== 1) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}] must have exactly one active tab.`);
+    }
+
+    let groups = [];
+    if (workspace.groups !== undefined) {
+        if (!Array.isArray(workspace.groups)) {
+            throw new Error(`Invalid backup: workspace[${wsIndex}].groups must be an array.`);
+        }
+        groups = workspace.groups.map((group, groupIndex) => validateAndNormalizeGroup(group, wsIndex, groupIndex, tabs.length));
+    }
 
     return {
-        id: typeof workspace.id === 'string' && workspace.id.trim() ? workspace.id : generateWorkspaceId(),
-        name: sanitizeWorkspaceName(workspace.name),
-        color: normalizeWorkspaceColor(workspace.color || 'currentColor'),
+        id: workspace.id.trim(),
+        name: workspace.name.trim().slice(0, 120),
+        color: workspace.color,
         tabs,
         groups,
         windowId: null,
         lastActive: typeof workspace.lastActive === 'number' ? workspace.lastActive : Date.now()
+    };
+}
+
+function validateAndNormalizeTab(tab, wsIndex, tabIndex) {
+    if (!tab || typeof tab !== 'object' || Array.isArray(tab)) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].tabs[${tabIndex}] must be an object.`);
+    }
+
+    if (!isAllowedTabUrl(tab.url)) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].tabs[${tabIndex}].url is not allowed.`);
+    }
+
+    if (typeof tab.pinned !== 'boolean') {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].tabs[${tabIndex}].pinned must be boolean.`);
+    }
+
+    if (typeof tab.active !== 'boolean') {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].tabs[${tabIndex}].active must be boolean.`);
+    }
+
+    if (tab.cookieStoreId !== undefined && typeof tab.cookieStoreId !== 'string') {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].tabs[${tabIndex}].cookieStoreId must be a string.`);
+    }
+
+    return {
+        url: tab.url.trim(),
+        title: typeof tab.title === 'string' ? tab.title.slice(0, 500) : '',
+        pinned: tab.pinned,
+        active: tab.active,
+        cookieStoreId: typeof tab.cookieStoreId === 'string' ? tab.cookieStoreId : undefined
+    };
+}
+
+function validateAndNormalizeGroup(group, wsIndex, groupIndex, tabCount) {
+    if (!group || typeof group !== 'object' || Array.isArray(group)) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].groups[${groupIndex}] must be an object.`);
+    }
+
+    if (typeof group.title !== 'string' || group.title.trim().length === 0) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].groups[${groupIndex}].title must be a non-empty string.`);
+    }
+
+    if (typeof group.color !== 'string' || !ALLOWED_GROUP_COLORS.has(group.color)) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].groups[${groupIndex}].color is invalid.`);
+    }
+
+    if (typeof group.collapsed !== 'boolean') {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].groups[${groupIndex}].collapsed must be boolean.`);
+    }
+
+    if (!Array.isArray(group.tabIndices) || group.tabIndices.length === 0) {
+        throw new Error(`Invalid backup: workspace[${wsIndex}].groups[${groupIndex}].tabIndices must be a non-empty array.`);
+    }
+
+    const seenIndices = new Set();
+    for (const index of group.tabIndices) {
+        if (!Number.isInteger(index) || index < 0 || index >= tabCount) {
+            throw new Error(`Invalid backup: workspace[${wsIndex}].groups[${groupIndex}] has invalid tab index.`);
+        }
+        if (seenIndices.has(index)) {
+            throw new Error(`Invalid backup: workspace[${wsIndex}].groups[${groupIndex}] has duplicated tab indices.`);
+        }
+        seenIndices.add(index);
+    }
+
+    return {
+        title: group.title.trim().slice(0, 120),
+        color: group.color,
+        collapsed: group.collapsed,
+        tabIndices: [...group.tabIndices]
     };
 }
 
@@ -185,13 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function performRestore(workspaces) {
         try {
-            const processed = workspaces
-                .map(normalizeWorkspace)
-                .filter(Boolean);
-
-            if (processed.length === 0) {
-                throw new Error('Invalid data format. No valid workspaces found.');
-            }
+            const processed = validateAndNormalizeBackup(workspaces);
 
             // DESTROY AND OVERWRITE
             await browser.storage.local.set({ workspaces: processed });
@@ -219,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 1000);
         } catch (err) {
-            showStatus('Restore failed: ' + err.message, 'error');
+            showStatus(toUserFriendlyImportError(err), 'error');
         }
     }
 

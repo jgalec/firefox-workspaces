@@ -16,6 +16,17 @@ const WorkspaceManager = {
             .join('||');
     },
 
+    normalizeGroupColor(color) {
+        const allowedColors = new Set(['grey', 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange']);
+        return typeof color === 'string' && allowedColors.has(color) ? color : 'blue';
+    },
+
+    normalizeGroupTitle(title) {
+        if (typeof title !== 'string') return 'Group';
+        const trimmed = title.trim();
+        return trimmed.length > 0 ? trimmed.slice(0, 120) : 'Group';
+    },
+
     /**
      * Re-builds the memory map from storage on startup.
      */
@@ -284,6 +295,10 @@ const WorkspaceManager = {
                 if (ws.groups && browser.tabGroups) {
                     for (const group of ws.groups) {
                         try {
+                            if (!group || typeof group !== 'object' || !Array.isArray(group.tabIndices)) {
+                                continue;
+                            }
+
                             const tabIdsToGroup = group.tabIndices
                                 .map(idx => createdTabIds[idx])
                                 .filter(id => id);
@@ -293,9 +308,9 @@ const WorkspaceManager = {
                                     tabIds: tabIdsToGroup
                                 });
                                 await browser.tabGroups.update(newGroupId, {
-                                    title: group.title,
-                                    color: group.color,
-                                    collapsed: group.collapsed
+                                    title: this.normalizeGroupTitle(group.title),
+                                    color: this.normalizeGroupColor(group.color),
+                                    collapsed: typeof group.collapsed === 'boolean' ? group.collapsed : false
                                 });
                             }
                         } catch (err) { console.error('Manager: Group restore error', err); }
