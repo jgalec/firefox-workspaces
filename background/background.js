@@ -5,6 +5,14 @@
 
 console.log('Background: Event Coordinator started.');
 
+function generateWorkspaceId() {
+    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
+        return `ws-${globalThis.crypto.randomUUID()}`;
+    }
+
+    return `ws-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 // --- Messaging ---
 browser.runtime.onMessage.addListener(async (message) => {
     if (message.type === 'SWITCH_WORKSPACE') {
@@ -14,7 +22,7 @@ browser.runtime.onMessage.addListener(async (message) => {
     if (message.type === 'CREATE_WORKSPACE') {
         const newWs = message.payload;
         // Securely generate a new ID to prevent overwriting existing workspaces
-        newWs.id = `ws-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        newWs.id = generateWorkspaceId();
         newWs.tabs = [];
         newWs.groups = [];
         newWs.windowId = null; 

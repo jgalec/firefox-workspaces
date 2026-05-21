@@ -19,6 +19,14 @@ const PopupLogic = {
         '#ff97e2'  // Mozilla Pink
     ],
 
+    generateWorkspaceId() {
+        if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
+            return `ws-${globalThis.crypto.randomUUID()}`;
+        }
+
+        return `ws-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    },
+
     async refreshData() {
         const currentWin = await browser.windows.getCurrent();
         const allWindows = await browser.windows.getAll();
@@ -51,7 +59,7 @@ const PopupLogic = {
             });
         } else {
             const newWorkspace = {
-                id: 'ws-' + Date.now(),
+                id: this.generateWorkspaceId(),
                 name: name,
                 color: this.selectedColor,
                 tabs: [],

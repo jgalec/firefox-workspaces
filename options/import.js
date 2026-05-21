@@ -6,6 +6,14 @@ if (typeof browser === "undefined") {
     var browser = chrome;
 }
 
+function generateWorkspaceId() {
+    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
+        return `ws-${globalThis.crypto.randomUUID()}`;
+    }
+
+    return `ws-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
@@ -107,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const processed = workspaces.map(ws => ({
                 ...ws,
                 windowId: null, // Always reset window linkage
-                id: ws.id || `ws-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+                id: ws.id || generateWorkspaceId()
             }));
 
             // DESTROY AND OVERWRITE
