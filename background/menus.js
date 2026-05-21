@@ -5,6 +5,26 @@
 
 const MenusManager = {
     ROOT_ID: 'move-to-workspace-root',
+    workspaceMenuIds: new Set(),
+    rootCreated: false,
+
+    async ensureRootMenu() {
+        if (this.rootCreated) return;
+
+        try {
+            browser.menus.create({
+                id: this.ROOT_ID,
+                title: 'Move tab to Workspace',
+                contexts: ['tab']
+            });
+            this.rootCreated = true;
+        } catch (error) {
+            if (!String(error).includes('ID already exists')) {
+                throw error;
+            }
+            this.rootCreated = true;
+        }
+    },
 
     /**
      * Initializes the context menu items.
@@ -14,12 +34,10 @@ const MenusManager = {
         // Create/Recreate root menu
         // We remove all first to ensure clean slate
         await browser.menus.removeAll();
-        
-        browser.menus.create({
-            id: this.ROOT_ID,
-            title: "Move tab to Workspace",
-            contexts: ["tab"]
-        });
+
+        this.workspaceMenuIds.clear();
+        this.rootCreated = false;
+        await this.ensureRootMenu();
 
         await this.updateSubmenus();
     },
@@ -28,35 +46,44 @@ const MenusManager = {
      * Rebuilds the list of workspaces in the menu.
      */
     async updateSubmenus() {
-        // To update, we can just clear and re-init, or selectively remove children.
-        // For simplicity/robustness, we re-run init logic for items.
-        // But we need to avoid recursion loop if init calls this.
-        
-        // Strategy: Get workspaces, add them as children.
-        // First check if root exists, if not, init will handle it.
-        // We'll assume root exists for updateSubmenus.
-        
-        const workspaces = await StorageService.getWorkspaces();
-        
-        // We need to clean up OLD submenu items.
-        // Since we can't easily identify them without tracking IDs, 
-        // resetting all menus is safest in this simple architecture.
-        await browser.menus.removeAll();
-        
-        browser.menus.create({
-            id: this.ROOT_ID,
-            title: "Move tab to Workspace",
-            contexts: ["tab"]
-        });
+        await this.ensureRootMenu();
 
-        workspaces.forEach(ws => {
-            browser.menus.create({
-                id: ws.id,
-                parentId: this.ROOT_ID,
-                title: ws.name,
-                contexts: ["tab"]
-            });
-        });
+        const workspaces = await StorageService.getWorkspaces();
+        const nextWorkspaceIds = new Set(workspaces.map(ws => ws.id));
+
+        for (const existingId of this.workspaceMenuIds) {
+            if (!nextWorkspaceIds.has(existingId)) {
+                try {
+                    await browser.menus.remove(existingId);
+                } catch (error) {
+                    console.error(`Menus: Failed to remove menu item ${existingId}`, error);
+                }
+            }
+        }
+
+        this.workspaceMenuIds = new Set([...this.workspaceMenuIds].filter(id => nextWorkspaceIds.has(id)));
+
+        for (const ws of workspaces) {
+            if (!this.workspaceMenuIds.has(ws.id)) {
+                try {
+                    browser.menus.create({
+                        id: ws.id,
+                        parentId: this.ROOT_ID,
+                        title: ws.name,
+                        contexts: ['tab']
+                    });
+                    this.workspaceMenuIds.add(ws.id);
+                } catch (error) {
+                    console.error(`Menus: Failed to create menu item ${ws.id}`, error);
+                }
+            } else {
+                try {
+                    await browser.menus.update(ws.id, { title: ws.name });
+                } catch (error) {
+                    console.error(`Menus: Failed to update menu item ${ws.id}`, error);
+                }
+            }
+        }
     },
 
     /**
