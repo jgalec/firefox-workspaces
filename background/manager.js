@@ -42,17 +42,22 @@ const WorkspaceManager = {
         }
 
         // Re-link restored session windows when windowId changed between sessions.
-        const workspaceBySignature = new Map();
+        // Safety rule: only auto-link when signature is unique on both sides.
+        const workspacesBySignature = new Map();
         for (const ws of workspaces) {
             if (linkedWorkspaceIds.has(ws.id)) continue;
             if (!ws.tabs || ws.tabs.length === 0) continue;
 
             const signature = this.buildTabSignature(ws.tabs);
-            if (signature && !workspaceBySignature.has(signature)) {
-                workspaceBySignature.set(signature, ws);
+            if (!signature) continue;
+
+            if (!workspacesBySignature.has(signature)) {
+                workspacesBySignature.set(signature, []);
             }
+            workspacesBySignature.get(signature).push(ws);
         }
 
+        const windowsBySignature = new Map();
         for (const win of allWindows) {
             const hasLink = !!StateManager.getWorkspaceId(win.id);
             if (hasLink) continue;
@@ -61,16 +66,33 @@ const WorkspaceManager = {
             if (!tabs || tabs.length === 0) continue;
 
             const signature = this.buildTabSignature(tabs);
-            const matchedWorkspace = workspaceBySignature.get(signature);
-            if (!matchedWorkspace) continue;
+            if (!signature) continue;
 
-            matchedWorkspace.windowId = win.id;
+            if (!windowsBySignature.has(signature)) {
+                windowsBySignature.set(signature, []);
+            }
+            windowsBySignature.get(signature).push(win.id);
+        }
+
+        for (const [signature, wsList] of workspacesBySignature.entries()) {
+            const winList = windowsBySignature.get(signature) || [];
+            if (wsList.length !== 1 || winList.length !== 1) {
+                if (wsList.length > 0 && winList.length > 0) {
+                    Logger.debug(
+                        `Manager: Skipping ambiguous restore link for signature (workspaces=${wsList.length}, windows=${winList.length})`
+                    );
+                }
+                continue;
+            }
+
+            const matchedWorkspace = wsList[0];
+            const windowId = winList[0];
+            matchedWorkspace.windowId = windowId;
             await StorageService.saveWorkspace(matchedWorkspace);
-            StateManager.linkWindow(win.id, matchedWorkspace.id);
+            StateManager.linkWindow(windowId, matchedWorkspace.id);
             linkedWorkspaceIds.add(matchedWorkspace.id);
-            workspaceBySignature.delete(signature);
-            EventBus.emit(Events.WINDOW_LINKED, { windowId: win.id, workspaceId: matchedWorkspace.id });
-            Logger.debug(`Manager: Re-linked restored window ${win.id} to workspace ${matchedWorkspace.id}`);
+            EventBus.emit(Events.WINDOW_LINKED, { windowId, workspaceId: matchedWorkspace.id });
+            Logger.debug(`Manager: Re-linked restored window ${windowId} to workspace ${matchedWorkspace.id}`);
         }
 
         Logger.debug('Manager: Hydrated window map', StateManager.windowToWorkspaceMap);
