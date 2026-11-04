@@ -150,6 +150,7 @@ function validateAndNormalizeGroup(group, wsIndex, groupIndex, tabCount) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    Logger.trace('options', 'opened', { href: location.href });
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const statusArea = document.getElementById('status-area');
@@ -205,7 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleFile(file) {
         if (!file) return;
-        
+        Logger.trace('options', 'file-selected', { name: file.name, size: file.size, type: file.type });
+
         statusArea.classList.add('hidden');
         const reader = new FileReader();
 
@@ -215,9 +217,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const workspacesToImport = Array.isArray(imported) ? imported : imported.workspaces;
 
                 if (!workspacesToImport || !Array.isArray(workspacesToImport)) {
+                    Logger.trace('options', 'parse-rejected', { reason: 'not-an-array-or-workspaces-key' });
                     showStatus('Error: Invalid backup format.', 'error');
                     return;
                 }
+                Logger.trace('options', 'parsed', { workspaceCount: workspacesToImport.length, form: Array.isArray(imported) ? 'array' : 'object' });
 
                 // Show custom modal instead of window.confirm
                 pendingWorkspaces = workspacesToImport;
@@ -225,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 confirmModal.classList.remove('hidden');
                 
             } catch (err) {
+                Logger.trace('options', 'parse-failed', { error: err });
                 console.error('Import Error:', err);
                 showStatus('Error reading file: ' + err.message, 'error');
             }
@@ -234,10 +239,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function performRestore(workspaces) {
         try {
+            Logger.trace('options', 'restore-start', { incomingCount: workspaces.length });
             const processed = validateAndNormalizeBackup(workspaces);
+            Logger.trace('options', 'restore-validated', { validatedCount: processed.length });
 
             // DESTROY AND OVERWRITE
             await browser.storage.local.set({ workspaces: processed });
+            Logger.trace('options', 'restore-written', { storedCount: processed.length });
             
             // Notify background to re-hydrate state
             browser.runtime.sendMessage({ 
@@ -262,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 1000);
         } catch (err) {
+            Logger.trace('options', 'restore-failed', { error: err });
             showStatus(toUserFriendlyImportError(err), 'error');
         }
     }

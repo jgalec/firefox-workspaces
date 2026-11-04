@@ -11,6 +11,7 @@ const PopupIO = {
         try {
             const data = await browser.storage.local.get('workspaces');
             const json = JSON.stringify(data, null, 2);
+            Logger.trace('popup-io', 'export', { workspaceCount: (data.workspaces || []).length, bytes: json.length });
             
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -25,7 +26,8 @@ const PopupIO = {
             
             // Auto-cleanup by browser on popup close
         } catch (error) { 
-            console.error('IO: Export Error:', error); 
+            Logger.trace('popup-io', 'export-failed', { error, hasShowMessage: !!(window.PopupUI && window.PopupUI.showMessage) });
+            console.error('IO: Export Error:', error);
             if (window.PopupUI) {
                 PopupUI.showMessage('Export Failed', error.message, true);
             } else {
