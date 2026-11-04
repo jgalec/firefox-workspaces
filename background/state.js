@@ -14,6 +14,11 @@ const StateManager = {
      * Links a window to a workspace in memory.
      */
     linkWindow(windowId, workspaceId) {
+        Logger.trace('state', 'link', {
+            windowId,
+            workspaceId,
+            previousWorkspaceId: this.windowToWorkspaceMap[windowId] || null
+        });
         this.windowToWorkspaceMap[windowId] = workspaceId;
     },
 
@@ -21,6 +26,7 @@ const StateManager = {
      * Unlinks a window (e.g., on close).
      */
     unlinkWindow(windowId) {
+        Logger.trace('state', 'unlink', { windowId, workspaceId: this.windowToWorkspaceMap[windowId] || null });
         delete this.windowToWorkspaceMap[windowId];
     },
 
@@ -36,6 +42,7 @@ const StateManager = {
      */
     lockWindow(windowId) {
         this.restoringWindows.add(windowId);
+        Logger.trace('state', 'lock', { windowId, lockedWindows: this.restoringWindows });
         Logger.debug(`State: Locked window ${windowId}`);
     },
 
@@ -44,6 +51,7 @@ const StateManager = {
      */
     unlockWindow(windowId) {
         this.restoringWindows.delete(windowId);
+        Logger.trace('state', 'unlock', { windowId, lockedWindows: this.restoringWindows });
         Logger.debug(`State: Unlocked window ${windowId}`);
     },
 
@@ -58,6 +66,7 @@ const StateManager = {
      * Resets the map (useful for hydration).
      */
     resetMap() {
+        Logger.trace('state', 'resetMap', { previous: this.windowToWorkspaceMap });
         this.windowToWorkspaceMap = {};
     }
 };

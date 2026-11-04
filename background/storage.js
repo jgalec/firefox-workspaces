@@ -32,6 +32,7 @@ const StorageService = {
         this.writeQueue = this.writeQueue
             .then(() => operation())
             .catch(error => {
+                Logger.trace('storage', 'write-queue-failed', { error });
                 console.error('StorageService: Write queue operation failed', error);
             });
 
@@ -42,8 +43,16 @@ const StorageService = {
         return this.enqueueWrite(async () => {
             const result = await browser.storage.local.get(this.KEYS.WORKSPACES);
             const workspaces = result[this.KEYS.WORKSPACES] || [];
+            const countBefore = workspaces.length;
             const nextWorkspaces = await mutator(workspaces);
             await browser.storage.local.set({ [this.KEYS.WORKSPACES]: nextWorkspaces });
+            Logger.trace('storage', 'mutate', {
+                countBefore,
+                countAfter: Array.isArray(nextWorkspaces) ? nextWorkspaces.length : null,
+                summary: Array.isArray(nextWorkspaces)
+                    ? nextWorkspaces.map(w => w && ({ id: w.id, name: w.name, windowId: w.windowId, tabCount: (w.tabs || []).length }))
+                    : null
+            });
             return nextWorkspaces;
         });
     },

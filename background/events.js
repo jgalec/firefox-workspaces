@@ -14,6 +14,12 @@ const EventBus = {
     },
 
     emit(event, data) {
+        Logger.trace('bus', 'emit', {
+            event,
+            listenerCount: this.listeners[event] ? this.listeners[event].length : 0,
+            windowId: data && data.windowId,
+            workspaceId: data && (data.workspaceId || (data.workspace && data.workspace.id))
+        });
         if (this.listeners[event]) {
             this.listeners[event].forEach(callback => {
                 try {
