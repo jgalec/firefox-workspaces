@@ -41,6 +41,12 @@ const PopupUI = {
      */
     renderList(workspaces, activeWindowId, openWindowIds, onSwitch, onDelete, onEdit, onReorder) {
         const isReordering = this.ui.workspaceList.classList.contains('reordering');
+        Logger.trace('popup-ui', 'renderList', {
+            count: workspaces.length,
+            activeWindowId,
+            isReordering,
+            activeWorkspaceId: (workspaces.find(w => w.windowId === activeWindowId) || {}).id || null
+        });
         this.ui.workspaceList.innerHTML = '';
         
         // Header Default

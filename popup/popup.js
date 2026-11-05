@@ -4,6 +4,8 @@
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
+    Logger.trace('popup', 'opened', { href: location.href });
+
     // 1. Gather References
     const uiRefs = {
         mainView: document.getElementById('main-view'),
@@ -39,6 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         PopupUI.init(uiRefs);
         await PopupLogic.refreshData();
     } catch (e) {
+        Logger.trace('popup', 'init-failed', { error: e });
         console.error('Popup: Initialization failed', e);
     }
 
@@ -53,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     uiRefs.toggleReorderBtn.addEventListener('click', () => {
         uiRefs.workspaceList.classList.toggle('reordering');
         uiRefs.toggleReorderBtn.classList.toggle('active');
+        Logger.trace('popup', 'action', { action: 'toggle-reorder', reordering: uiRefs.workspaceList.classList.contains('reordering') });
         PopupLogic.refreshData();
     });
 
@@ -68,11 +72,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // I/O Listeners
     uiRefs.exportWorkspacesBtn.addEventListener('click', () => {
         uiRefs.optionsDropdown.classList.add('hidden');
+        Logger.trace('popup', 'action', { action: 'export' });
         PopupIO.exportData();
     });
 
     uiRefs.restoreWorkspacesBtn.addEventListener('click', () => {
         uiRefs.optionsDropdown.classList.add('hidden');
+        Logger.trace('popup', 'action', { action: 'open-restore-page' });
         browser.tabs.create({ url: browser.runtime.getURL('options/restore.html') });
     });
 

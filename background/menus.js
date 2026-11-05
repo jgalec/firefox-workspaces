@@ -50,6 +50,7 @@ const MenusManager = {
 
         const workspaces = await StorageService.getWorkspaces();
         const nextWorkspaceIds = new Set(workspaces.map(ws => ws.id));
+        Logger.trace('menus', 'update-submenus', { existingMenuIds: this.workspaceMenuIds, nextWorkspaceIds });
 
         for (const existingId of this.workspaceMenuIds) {
             if (!nextWorkspaceIds.has(existingId)) {
@@ -90,6 +91,7 @@ const MenusManager = {
      * Moves a tab to the target workspace window.
      */
     async handleMove(tabId, workspaceId) {
+        Logger.trace('menus', 'move-tab', { tabId, workspaceId });
         Logger.debug(`Menus: Moving tab ${tabId} to workspace ${workspaceId}`);
         
         // 1. Ensure target window is open
@@ -116,6 +118,7 @@ const MenusManager = {
 
 // --- Register Listener ONCE at top level ---
 browser.menus.onClicked.addListener((info, tab) => {
+    Logger.trace('menus', 'clicked', { menuItemId: info.menuItemId, parentMenuItemId: info.parentMenuItemId, tabId: tab && tab.id });
     if (info.parentMenuItemId === MenusManager.ROOT_ID) {
         MenusManager.handleMove(tab.id, info.menuItemId);
     }

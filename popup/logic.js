@@ -34,6 +34,12 @@ const PopupLogic = {
         const data = await browser.storage.local.get('workspaces');
         const workspaces = data.workspaces || [];
 
+        Logger.trace('popup', 'refresh', {
+            currentWindowId: currentWin.id,
+            openWindowIds,
+            workspaces: workspaces.map(w => ({ id: w.id, name: w.name, windowId: w.windowId, tabCount: (w.tabs || []).length }))
+        });
+
         PopupUI.renderList(
             workspaces, 
             currentWin.id, 
@@ -46,16 +52,26 @@ const PopupLogic = {
     },
 
     async switchWorkspace(id) {
-        await browser.runtime.sendMessage({ type: 'SWITCH_WORKSPACE', workspaceId: id });
+        Logger.trace('popup', 'action', { action: 'switch', workspaceId: id });
+        const response = await browser.runtime.sendMessage({ type: 'SWITCH_WORKSPACE', workspaceId: id });
+        Logger.trace('popup', 'response', { action: 'switch', workspaceId: id, response });
         this.refreshData();
     },
 
     async handleSave(name) {
+        Logger.trace('popup', 'action', {
+            action: 'save',
+            mode: this.editingWorkspaceId ? 'update' : 'create',
+            editingWorkspaceId: this.editingWorkspaceId,
+            name,
+            color: this.selectedColor,
+            fromCurrentWindow: this.saveFromCurrentWindow
+        });
         if (this.editingWorkspaceId) {
-            await browser.runtime.sendMessage({ 
-                type: 'UPDATE_WORKSPACE', 
+            await browser.runtime.sendMessage({
+                type: 'UPDATE_WORKSPACE',
                 workspaceId: this.editingWorkspaceId,
-                payload: { name, color: this.selectedColor } 
+                payload: { name, color: this.selectedColor }
             });
         } else {
             const newWorkspace = {
@@ -73,6 +89,7 @@ const PopupLogic = {
                 fromCurrentWindow: this.saveFromCurrentWindow
             });
         }
+        Logger.trace('popup', 'response', { action: 'save', message: 'sent' });
         this.editingWorkspaceId = null;
         this.saveFromCurrentWindow = false;
         PopupUI.toggleView(false);
@@ -80,6 +97,7 @@ const PopupLogic = {
     },
 
     async confirmDelete() {
+        Logger.trace('popup', 'action', { action: 'confirm-delete', workspaceId: this.workspaceToDeleteId });
         if (this.workspaceToDeleteId) {
             await browser.runtime.sendMessage({ type: 'DELETE_WORKSPACE', workspaceId: this.workspaceToDeleteId });
             this.workspaceToDeleteId = null;
@@ -89,17 +107,20 @@ const PopupLogic = {
     },
 
     promptDelete(id, name) {
+        Logger.trace('popup', 'action', { action: 'prompt-delete', workspaceId: id, name });
         this.workspaceToDeleteId = id;
         PopupUI.showDeleteModal(name);
     },
 
     startEdit(ws) {
+        Logger.trace('popup', 'action', { action: 'start-edit', workspaceId: ws.id, name: ws.name });
         this.editingWorkspaceId = ws.id;
         this.selectedColor = ws.color;
         PopupUI.toggleView(true, 'edit', ws, this.selectedColor, this.availableColors);
     },
 
     startCreate(mode = 'create') {
+        Logger.trace('popup', 'action', { action: 'start-create', mode });
         this.editingWorkspaceId = null;
         this.saveFromCurrentWindow = (mode === 'save-window');
         this.selectedColor = this.availableColors[0];
@@ -107,6 +128,7 @@ const PopupLogic = {
     },
 
     async handleReorder(fromIndex, toIndex, dropAfter) {
+        Logger.trace('popup', 'action', { action: 'reorder', fromIndex, toIndex, dropAfter });
         try {
             const data = await browser.storage.local.get('workspaces');
             const workspaces = data.workspaces || [];
@@ -123,6 +145,9 @@ const PopupLogic = {
             // Notify background to update context menu order
             browser.runtime.sendMessage({ type: 'UPDATE_WORKSPACE', workspaceId: 'reorder', payload: {} });
             this.refreshData();
-        } catch (error) { console.error('PopupLogic: Error reordering', error); }
+        } catch (error) {
+            Logger.trace('popup', 'reorder-failed', { error });
+            console.error('PopupLogic: Error reordering', error);
+        }
     }
 };

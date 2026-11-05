@@ -40,6 +40,12 @@ const IndicatorManager = {
      * @param {Object} workspace - The workspace object (can be null to reset)
      */
     async updateWindowIcon(windowId, workspace) {
+        Logger.trace('indicator', 'update', {
+            windowId,
+            workspaceId: workspace ? workspace.id : null,
+            name: workspace ? workspace.name : null,
+            color: workspace ? workspace.color : null
+        });
         // Clear any old badge text just in case
         await browser.action.setBadgeText({ text: "", windowId });
 
@@ -72,6 +78,7 @@ const IndicatorManager = {
                 windowId 
             });
         } catch (error) {
+            Logger.trace('indicator', 'set-icon-failed', { windowId, error });
             console.error('Indicator: Failed to set icon', error);
         }
     }
